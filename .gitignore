@@ -12,12 +12,12 @@ venv/
 .coverage
 htmlcov/
 
-# Local data
-data/
-media/
-staticfiles/
+# Local data (anchored to the project root so code folders such as apps/media/ are kept)
+/data/
+/media/
+/staticfiles/
 *.sqlite3
-exports/
+/exports/
 our-love-*.json
 our-love-*.zip
 

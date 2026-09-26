@@ -8,10 +8,10 @@ venv/
 __pycache__/
 *.pyc
 .pytest_cache/
-data/
-media/
-staticfiles/
+/data/
+/media/
+/staticfiles/
 *.sqlite3
-exports/
+/exports/
 *.zip
 .claude/
