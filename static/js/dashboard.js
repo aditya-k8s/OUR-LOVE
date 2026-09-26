@@ -16,6 +16,64 @@
     return (bytes / 1024 / 1024).toFixed(1) + " MB";
   }
 
+  /* platform request limit (e.g. 4.5 MB on Vercel); 0 means no limit */
+  var REQUEST_LIMIT = parseInt(document.body.dataset.requestLimit, 10) || 0;
+  var RESIZE_ABOVE = 3.5 * 1024 * 1024;
+  var MAX_SIDE = 3000;
+
+  /* Re-encode large photos in the browser so they fit the request limit.
+     The server re-encodes and strips metadata again, so nothing is lost but bytes. */
+  function shrinkImage(file) {
+    if (file.size <= RESIZE_ABOVE || !window.createImageBitmap || !/^image\/(jpeg|png|webp)$/.test(file.type)) {
+      return Promise.resolve(file);
+    }
+    return createImageBitmap(file, { imageOrientation: "from-image" }).then(function (bitmap) {
+      var scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+      var canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      return new Promise(function (resolve) {
+        canvas.toBlob(function (blob) {
+          if (!blob || blob.size >= file.size) { resolve(file); return; }
+          var name = file.name.replace(/\.(png|webp|jpe?g)$/i, "") + ".jpg";
+          resolve(new File([blob], name, { type: "image/jpeg", lastModified: file.lastModified }));
+        }, "image/jpeg", 0.88);
+      });
+    }).catch(function () { return file; });
+  }
+
+  /* Plain file inputs on forms: shrink photos in place and warn about oversize requests. */
+  function initFileInputs() {
+    $$("form input[type=file]").forEach(function (input) {
+      if (input.hasAttribute("data-dropzone-input")) return;
+      var note = document.createElement("p");
+      note.className = "help";
+      note.setAttribute("role", "status");
+      input.after(note);
+      input.addEventListener("change", function () {
+        var files = Array.prototype.slice.call(input.files || []);
+        note.textContent = "";
+        if (!files.length) return;
+        var isImage = /image/.test(input.accept || "");
+        Promise.all(files.map(function (f) { return isImage ? shrinkImage(f) : Promise.resolve(f); })).then(function (ready) {
+          if (window.DataTransfer && ready.some(function (f, i) { return f !== files[i]; })) {
+            var dt = new DataTransfer();
+            ready.forEach(function (f) { dt.items.add(f); });
+            input.files = dt.files;
+          }
+          var total = ready.reduce(function (sum, f) { return sum + f.size; }, 0);
+          if (REQUEST_LIMIT && total > REQUEST_LIMIT * 0.95) {
+            note.textContent = "These files total " + formatSize(total) + ", more than this server accepts in one request (" +
+              formatSize(REQUEST_LIMIT) + "). " + (isImage ? "Upload fewer at a time, or use the Photos page." :
+              "For large chat exports use: python manage.py import_chat_history <file>");
+            note.classList.add("errorlist");
+          }
+        });
+      });
+    });
+  }
+
   /* drawer (mobile navigation) */
   function initDrawer() {
     var drawer = $("[data-drawer]");
@@ -56,6 +114,7 @@
       var active = 0;
       var MAX_PARALLEL = 3;
       var uploaded = 0;
+      var pendingPrep = 0;
 
       ["dragenter", "dragover"].forEach(function (evt) {
         zone.addEventListener(evt, function (e) { e.preventDefault(); zone.classList.add("is-over"); });
@@ -86,9 +145,20 @@
             img.onload = function () { URL.revokeObjectURL(img.src); };
             $(".preview", row).appendChild(img);
           }
-          queue.push({ file: file, row: row });
+          var prepared = kind === "photo" ? shrinkImage(file) : Promise.resolve(file);
+          pendingPrep += 1;
+          prepared.then(function (ready) {
+            pendingPrep -= 1;
+            if (REQUEST_LIMIT && ready.size > REQUEST_LIMIT * 0.97) {
+              fail(row, kind === "photo" ? "Too large for this server even after resizing" :
+                "Larger than " + formatSize(REQUEST_LIMIT) + " (server limit). Add it as a video link instead.");
+              return;
+            }
+            if (ready !== file) $(".size", row).textContent = formatSize(file.size) + " to " + formatSize(ready.size);
+            queue.push({ file: ready, row: row });
+            pump();
+          });
         });
-        pump();
       }
 
       function fail(row, message) {
@@ -147,7 +217,7 @@
       function done() {
         active -= 1;
         pump();
-        if (!active && !queue.length && uploaded) {
+        if (!active && !queue.length && !pendingPrep && uploaded) {
           var note = zone.parentElement.querySelector("[data-reload]");
           if (!note) {
             note = document.createElement("p");
@@ -166,5 +236,6 @@
     initConfirm();
     initChart();
     initDropzones();
+    initFileInputs();
   });
 })();

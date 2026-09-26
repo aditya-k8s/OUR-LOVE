@@ -192,6 +192,7 @@ See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for step-by-step guides:
 - **AWS EC2:** a single instance running Docker Compose behind Caddy or Nginx with automatic HTTPS.
 - **Azure:** Azure Container Apps (or App Service for Containers) with an Azure Files volume for media, or any S3-compatible bucket.
 - **Simple test deployment:** Render or Railway from the Dockerfile.
+- **Vercel:** zero-config serverless deployment from GitHub. It needs Postgres (e.g. Neon) for sign-in and S3-compatible storage for uploads; see *E. Vercel*.
 
 Production checklist: `DEBUG=False`, a strong `SECRET_KEY`, correct `ALLOWED_HOSTS` and
 `CSRF_TRUSTED_ORIGINS`, `BEHIND_PROXY=True` behind a load balancer, HTTPS, the Atlas IP

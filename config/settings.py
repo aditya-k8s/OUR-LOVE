@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlparse
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -41,16 +41,29 @@ def env_list(name: str, default: str = "") -> list[str]:
 
 DEBUG = env_bool("DEBUG", False)
 TESTING = env_bool("OURLOVE_TESTING", False)
+# Vercel sets VERCEL=1 during the build and at runtime (serverless, read-only code directory).
+ON_VERCEL = bool(env("VERCEL")) and not TESTING
 
 _INSECURE_KEY = "dev-only-insecure-key-change-me"
 SECRET_KEY = env("SECRET_KEY", _INSECURE_KEY if (DEBUG or TESTING) else None)
 if not SECRET_KEY:
-    raise ImproperlyConfigured("SECRET_KEY must be set in the environment when DEBUG=False.")
+    raise ImproperlyConfigured(
+        "SECRET_KEY must be set in the environment when DEBUG=False."
+        + (" On Vercel: Project Settings > Environment Variables, for Production and Preview, then redeploy."
+           if ON_VERCEL else "")
+    )
 if not (DEBUG or TESTING) and (SECRET_KEY == _INSECURE_KEY or len(SECRET_KEY) < 40):
     raise ImproperlyConfigured("SECRET_KEY is too weak for production (use 50+ random characters).")
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1" if DEBUG else "")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
+if ON_VERCEL:
+    # Vercel's system variables name the deployment, branch and production domains.
+    for _name in ("VERCEL_URL", "VERCEL_BRANCH_URL", "VERCEL_PROJECT_PRODUCTION_URL"):
+        _host = env(_name)
+        if _host and _host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_host)
+            CSRF_TRUSTED_ORIGINS.append(f"https://{_host}")
 
 INSTALLED_APPS = [
     "django.contrib.auth",
@@ -106,7 +119,7 @@ TEMPLATES = [
 # ----------------------------------------------------------------- SQL (auth only)
 # Users and sessions live in a small SQL database (see docs/ARCHITECTURE.md, D2).
 
-_database_url = env("DATABASE_URL")
+_database_url = env("DATABASE_URL") or env("POSTGRES_URL")
 if _database_url and _database_url.startswith(("postgres://", "postgresql://")):
     _db = urlparse(_database_url)
     DATABASES = {
@@ -117,9 +130,16 @@ if _database_url and _database_url.startswith(("postgres://", "postgresql://")):
             "PASSWORD": _db.password,
             "HOST": _db.hostname,
             "PORT": _db.port or 5432,
-            "CONN_MAX_AGE": 60,
+            "CONN_MAX_AGE": 0 if ON_VERCEL else 60,
+            # Keeps provider options such as sslmode=require (Neon, Supabase, RDS).
+            "OPTIONS": dict(parse_qsl(_db.query)),
         }
     }
+elif ON_VERCEL:
+    raise ImproperlyConfigured(
+        "On Vercel the app needs a Postgres database for sign-in and sessions, because the filesystem is "
+        "temporary. Add one (e.g. Vercel Storage > Neon) and set DATABASE_URL, then redeploy."
+    )
 else:
     DATABASES = {
         "default": {
@@ -127,7 +147,10 @@ else:
             "NAME": env("SQLITE_PATH", str(BASE_DIR / "data" / "auth.sqlite3")),
         }
     }
-    Path(DATABASES["default"]["NAME"]).parent.mkdir(parents=True, exist_ok=True)
+    try:
+        Path(DATABASES["default"]["NAME"]).parent.mkdir(parents=True, exist_ok=True)
+    except OSError:  # read-only filesystem; Django reports the real problem on first query
+        pass
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -170,7 +193,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
-if env_bool("BEHIND_PROXY", False):
+if env_bool("BEHIND_PROXY", ON_VERCEL):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     USE_X_FORWARDED_HOST = True
 SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
@@ -192,8 +215,10 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-MEDIA_ROOT = Path(env("MEDIA_ROOT", str(BASE_DIR / "media")))
 MEDIA_STORAGE_PROVIDER = (env("MEDIA_STORAGE_PROVIDER", "local") or "local").lower()
+# On Vercel, local disk is temporary: uploads are refused until S3-compatible storage is configured.
+MEDIA_EPHEMERAL = ON_VERCEL and MEDIA_STORAGE_PROVIDER == "local"
+MEDIA_ROOT = Path(env("MEDIA_ROOT", "/tmp/our-love-media" if MEDIA_EPHEMERAL else str(BASE_DIR / "media")))
 MEDIA_SIGNED_URL_SECONDS = env_int("MEDIA_SIGNED_URL_SECONDS", 3600)
 
 _media_backend: dict = {
@@ -233,6 +258,8 @@ STORAGES = {
 MAX_IMAGE_UPLOAD_MB = env_int("MAX_IMAGE_UPLOAD_MB", 20)
 MAX_VIDEO_UPLOAD_MB = env_int("MAX_VIDEO_UPLOAD_MB", 300)
 MAX_IMPORT_UPLOAD_MB = env_int("MAX_IMPORT_UPLOAD_MB", 25)
+# Largest request the platform accepts (Vercel functions: 4.5 MB). Browsers resize photos to fit.
+REQUEST_LIMIT_MB = float(env("REQUEST_LIMIT_MB", "4.5" if ON_VERCEL else "0") or 0)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000

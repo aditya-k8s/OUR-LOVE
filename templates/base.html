@@ -36,7 +36,8 @@
 <body class="{% block body_class %}{% endblock %}"
       data-easter="{% if site.easter_egg.enabled %}on{% else %}off{% endif %}"
       data-easter-message="{{ site.easter_egg.message }}"
-      data-sw="{% url 'service_worker' %}">
+      data-sw="{% url 'service_worker' %}"
+      data-request-limit="{{ request_limit_bytes }}">
   <div class="grain" aria-hidden="true"></div>
   <a class="skip-link" href="#main">Skip to content</a>
 

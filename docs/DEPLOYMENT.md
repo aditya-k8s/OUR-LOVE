@@ -8,6 +8,7 @@ Every option uses the same Docker image and MongoDB Atlas. Choose one of the fol
 | B. AWS EC2 + Docker Compose + Caddy | Low cost, simple production | S3 or local volume | SQLite volume |
 | C. Azure Container Apps | If you prefer Azure | Azure Files volume, or any S3-compatible bucket | Postgres Flexible Server, or SQLite on Azure Files |
 | D. Render / Railway | Quick testing | S3-compatible (e.g. Cloudflare R2) | SQLite on a disk, or managed Postgres |
+| E. Vercel | Serverless, deploy on every Git push | S3-compatible (required for uploads) | Postgres (required, e.g. Neon) |
 
 Common production settings:
 
@@ -168,7 +169,60 @@ Point `ourlove.example.com` at CloudFront (or the ALB) with a Route 53 alias rec
 
 ---
 
-## After deploying
+## E. Vercel
+
+Vercel detects Django from `manage.py`, reads `WSGI_APPLICATION`, runs `collectstatic`
+during the build and serves `/static/` from its CDN. The app detects Vercel (`VERCEL=1`)
+and then automatically trusts Vercel's HTTPS proxy, adds the deployment, branch and
+production domains to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`, and resizes large photos
+in the browser before upload.
+
+### Limits to know about
+
+| Limit | Effect | What to do |
+|-------|--------|-----------|
+| Temporary filesystem | SQLite and local media would be lost | Postgres for users and sessions; S3-compatible storage for media |
+| 4.5 MB per request | Large uploads fail with 413 | Photos are resized in the browser automatically; add videos as HTTPS links; import large chat exports from your computer with `python manage.py import_chat_history <file>` (it writes to the same Atlas database) |
+| No fixed outbound IP (Hobby) | Atlas cannot allow-list Vercel | Atlas *Network Access*: allow `0.0.0.0/0`, protected by a strong, unique database password |
+
+### 1. Postgres for sign-in and sessions
+
+In the Vercel project: *Storage > Create Database > Neon (Postgres)*, and connect it to the
+project. This sets `DATABASE_URL` (the app also accepts `POSTGRES_URL`). Any Postgres
+provider works.
+
+### 2. Environment variables
+
+*Project Settings > Environment Variables*, for **Production** and **Preview**:
+
+| Variable | Value |
+|----------|-------|
+| `SECRET_KEY` | `python -c "import secrets; print(secrets.token_urlsafe(50))"` |
+| `MONGODB_URI` | your Atlas connection string |
+| `MONGODB_DATABASE` | `our_love` |
+| `DATABASE_URL` | set by the Neon integration |
+| `MEDIA_STORAGE_PROVIDER` | `s3` (uploads stay switched off until this is set) |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET_NAME`, `AWS_REGION` | your bucket; for Cloudflare R2 also `AWS_S3_ENDPOINT_URL=https://<account>.r2.cloudflarestorage.com` and `AWS_REGION=auto` |
+| `ALLOWED_HOSTS` | only needed for a custom domain, e.g. `ourlove.example.com` (plus `CSRF_TRUSTED_ORIGINS=https://ourlove.example.com`) |
+
+Do not set `DEBUG`. Variables apply to new deployments only, so redeploy afterwards.
+
+### 3. Create the tables and the admin account (once)
+
+From your computer, with `DATABASE_URL` copied into your local `.env`:
+
+```bash
+python manage.py migrate
+python manage.py createadmin --username <you>
+python manage.py ensure_indexes
+```
+
+Run `migrate` again only after upgrading Django.
+
+### 4. Deploy
+
+Push to the connected branch, or run `vercel --prod`. Then open the site and sign in.
+
 
 1. Open the site and sign in with the admin account (created from `ADMIN_USERNAME` and `ADMIN_PASSWORD` by the entrypoint, or run `python manage.py createadmin` in the container).
 2. Remove `ADMIN_PASSWORD` from the environment once the account exists.

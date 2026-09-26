@@ -53,6 +53,8 @@ def site(request):
         "app_name": site_settings["pwa"]["app_name"],
         "couple_names": " & ".join(names),
         "public_site": settings.PUBLIC_SITE_ENABLED,
+        "request_limit_bytes": int(settings.REQUEST_LIMIT_MB * 1024 * 1024),
+        "media_ephemeral": settings.MEDIA_EPHEMERAL,
         "allow_indexing": settings.PUBLIC_SITE_ENABLED and site_settings["privacy"]["allow_search_indexing"],
         "nav": nav,
         "mobile_nav": mobile_nav,

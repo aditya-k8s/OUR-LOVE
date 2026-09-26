@@ -116,3 +116,18 @@ def test_deleting_photo_removes_files_and_references(admin_client):
     assert repo("photos").count() == 0
     assert not default_storage.exists(photo["storage_key"])
     assert repo("memories").get(mem)["photo_ids"] == []
+
+
+def test_uploads_refused_without_permanent_storage(admin_client, settings):
+    settings.MEDIA_EPHEMERAL = True
+    with pytest.raises(UploadError, match="permanent file storage"):
+        store_photo(make_image())
+    response = admin_client.post(reverse("dashboard:upload", args=["photo"]), {"file": make_image()})
+    assert response.status_code == 400 and "permanent file storage" in response.json()["error"]
+    assert repo("photos").count() == 0
+    assert b"uploads are off" in admin_client.get(reverse("dashboard:home")).content
+
+
+def test_request_limit_is_exposed_to_the_browser(admin_client, settings):
+    settings.REQUEST_LIMIT_MB = 4.5
+    assert b'data-request-limit="4718592"' in admin_client.get(reverse("dashboard:home")).content

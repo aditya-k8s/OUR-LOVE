@@ -16,6 +16,7 @@
       <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch light or dark mode"><span class="icon-moon">{% icon "moon" %}</span><span class="icon-sun">{% icon "sun" %}</span></button>
     </div>
     <div class="dash-main">
+      {% if media_ephemeral %}<div class="notice"><strong>Photo and video uploads are off.</strong> This deployment has no permanent file storage. Set <code>MEDIA_STORAGE_PROVIDER=s3</code> and the <code>AWS_*</code> variables (AWS S3 or Cloudflare R2), then redeploy. Everything else works normally.</div>{% endif %}
       {% block dash %}{% endblock %}
     </div>
   </div>
