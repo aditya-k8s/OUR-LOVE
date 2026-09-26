@@ -14,11 +14,15 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import threading
 
 from django.conf import settings
 from django.contrib.auth.hashers import identify_hasher, make_password
 
 logger = logging.getLogger(__name__)
+
+_ready = False
+_lock = threading.Lock()
 
 ACCOUNTS = (
     # (id, env prefix, is_staff)
@@ -78,3 +82,28 @@ def ensure_env_accounts(migrate: bool = True) -> list[str]:
     if not prepared:
         logger.error("No accounts configured: set ADMIN_USERNAME and ADMIN_PASSWORD in the environment.")
     return prepared
+
+
+def ensure_once() -> None:
+    """Run ensure_env_accounts() the first time it is needed in this process (thread-safe)."""
+    global _ready
+    if _ready or not settings.ENV_ACCOUNTS:
+        return
+    with _lock:
+        if not _ready:
+            ensure_env_accounts()
+            _ready = True
+
+
+class EnvAccountsMiddleware:
+    """Prepares the environment-defined accounts before the first request is handled.
+
+    Works whichever entry point the host imports (WSGI or ASGI).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        ensure_once()
+        return self.get_response(request)

@@ -83,6 +83,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "apps.core.middleware.HealthCheckMiddleware",
+    "apps.accounts.bootstrap.EnvAccountsMiddleware",  # no-op unless ENV_ACCOUNTS (Vercel without a database)
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

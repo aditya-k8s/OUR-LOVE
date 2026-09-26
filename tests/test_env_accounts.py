@@ -59,3 +59,14 @@ def test_missing_password_creates_nothing(env_accounts):
     env_accounts.delenv("ADMIN_PASSWORD")
     assert ensure_env_accounts(migrate=False) == []
     assert get_user_model().objects.count() == 0
+
+
+def test_middleware_prepares_accounts_on_first_request(client, env_accounts, monkeypatch):
+    from apps.accounts import bootstrap
+
+    monkeypatch.setattr(bootstrap, "_ready", False)
+    calls = []
+    monkeypatch.setattr(bootstrap, "ensure_env_accounts", lambda: calls.append(1) or ["aditya"])
+    client.get(reverse("accounts:login"))
+    client.get(reverse("accounts:login"))
+    assert calls == [1]
