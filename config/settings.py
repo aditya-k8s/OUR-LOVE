@@ -136,10 +136,10 @@ if _database_url and _database_url.startswith(("postgres://", "postgresql://")):
         }
     }
 elif ON_VERCEL:
-    raise ImproperlyConfigured(
-        "On Vercel the app needs a Postgres database for sign-in and sessions, because the filesystem is "
-        "temporary. Add one (e.g. Vercel Storage > Neon) and set DATABASE_URL, then redeploy."
-    )
+    # Serverless without Postgres: a throwaway SQLite file per instance, rebuilt on cold start from
+    # the ADMIN_* / VIEWER_* environment variables (apps.accounts.bootstrap). Sessions are signed
+    # cookies, so a sign-in stays valid across instances and cold starts.
+    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "/tmp/our-love-auth.sqlite3"}}
 else:
     DATABASES = {
         "default": {
@@ -153,6 +153,11 @@ else:
         pass
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Accounts defined by environment variables instead of a persistent database.
+ENV_ACCOUNTS = ON_VERCEL and not _database_url
+if ENV_ACCOUNTS:
+    SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 # ------------------------------------------------------------------------ MongoDB
 

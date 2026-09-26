@@ -192,7 +192,7 @@ See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for step-by-step guides:
 - **AWS EC2:** a single instance running Docker Compose behind Caddy or Nginx with automatic HTTPS.
 - **Azure:** Azure Container Apps (or App Service for Containers) with an Azure Files volume for media, or any S3-compatible bucket.
 - **Simple test deployment:** Render or Railway from the Dockerfile.
-- **Vercel:** zero-config serverless deployment from GitHub. It needs Postgres (e.g. Neon) for sign-in and S3-compatible storage for uploads; see *E. Vercel*.
+- **Vercel:** zero-config serverless deployment from GitHub. Sign-in comes from environment variables (no extra database); uploads need S3-compatible storage. See *E. Vercel*.
 
 Production checklist: `DEBUG=False`, a strong `SECRET_KEY`, correct `ALLOWED_HOSTS` and
 `CSRF_TRUSTED_ORIGINS`, `BEHIND_PROXY=True` behind a load balancer, HTTPS, the Atlas IP
@@ -293,7 +293,7 @@ pip install -r requirements-dev.txt
 python -m pytest
 ```
 
-The suite (117 tests) uses an in-memory MongoDB (mongomock) and covers authentication,
+The suite (125 tests) uses an in-memory MongoDB (mongomock) and covers authentication,
 admin authorisation, rate limiting, timeline and memory creation, visibility rules,
 search, filtering, the importer, duplicate detection and merge, upload validation
 (including EXIF stripping), the protected media view, the API, the PWA manifest and
