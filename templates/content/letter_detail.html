@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}{{ letter.title }}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container narrow">
+    <article class="letter-sheet reveal">
+      <span class="letter-date">{% if letter.date %}{{ letter.date|longdate }}{% else %}Undated{% endif %}</span>
+      <h1>{{ letter.title }}</h1>
+      {% if letter.recipient %}<p class="salutation">Dear {{ letter.recipient }},</p>{% endif %}
+      {{ letter.content|linebreaks }}
+      {% if letter.author %}<p class="signature">{{ letter.author }}</p>{% endif %}
+      {% if letter.photo %}<img src="{{ letter.photo.urls.medium }}" alt="{{ letter.photo.caption|default:'' }}" loading="lazy">{% endif %}
+    </article>
+    <div class="section-link"><a class="btn btn--small" href="{% url 'content:letters' %}">All letters</a></div>
+  </div>
+</section>
+{% endblock %}

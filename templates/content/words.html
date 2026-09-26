@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Words I'll Never Forget{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container">
+    <p class="eyebrow reveal">Words I'll never forget</p>
+    <h1 class="display reveal">Words that <em>stayed</em></h1>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container">
+    {% if page.items %}
+      <div class="quotes">{% for m in page.items %}{% include "partials/quote_card.html" %}{% endfor %}</div>
+      {% include "partials/pagination.html" %}
+    {% else %}
+      {% url 'dashboard:create' 'messages' as admin_url %}
+      {% include "partials/empty.html" with message="No words saved yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

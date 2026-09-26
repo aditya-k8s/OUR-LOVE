@@ -1,0 +1,17 @@
+{% if doc.photos|length > 1 or doc.videos %}
+<section class="section section--tight">
+  <div class="container">
+    {% if doc.videos %}
+    <div class="video-grid">
+      {% for video in doc.videos %}
+      <div class="video-card reveal"><video src="{{ video.src }}" controls preload="metadata" playsinline></video>
+        {% if video.title %}<div class="memory-body"><h3>{{ video.title }}</h3></div>{% endif %}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if doc.photos|length > 1 %}
+    <div class="gallery" data-lb-group>{% for photo in doc.photos %}{% include "partials/gallery_item.html" %}{% endfor %}</div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}

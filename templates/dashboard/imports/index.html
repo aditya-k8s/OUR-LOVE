@@ -1,0 +1,51 @@
+{% extends "dashboard/base.html" %}
+{% load ourlove %}
+{% block title %}Import history{% endblock %}
+{% block dash %}
+<div class="dash-head">
+  <div>
+    <p class="breadcrumb"><a href="{% url 'dashboard:home' %}">Dashboard</a> / Import history</p>
+    <h1>Import history</h1>
+    <p>Upload an exported conversation. Possible memories are extracted from dates and words that are actually in the text, and wait in <strong>Pending memories</strong> until you approve, edit, merge or reject them. Nothing is published automatically.</p>
+  </div>
+</div>
+
+<div class="notice">
+  <strong>Privacy:</strong> the uploaded file itself is not stored. Only the extracted passages you are about to review are kept. For ChatGPT exports, only messages you wrote are used; assistant replies are ignored so no AI-written details enter your story.
+</div>
+
+<form class="panel" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <h2>Upload a conversation</h2>
+  <div class="f{% if form.file.errors %} has-error{% endif %}">
+    <label for="{{ form.file.id_for_label }}">File</label>
+    <input class="file-input" type="file" name="file" id="{{ form.file.id_for_label }}" accept=".txt,.md,.json,.html,.htm,.pdf" required>
+    <p class="help">.txt, .md, .json (including ChatGPT <code>conversations.json</code>), .html (including ChatGPT <code>chat.html</code>) or text-based .pdf, up to {{ max_mb }} MB.</p>
+    {{ form.file.errors }}
+  </div>
+  <div class="form-foot"><button class="btn btn--small btn--solid" type="submit">{% icon "import" 16 %} Extract memories</button></div>
+</form>
+
+<section class="panel">
+  <h2>Previous imports{% if pending_total %} &middot; {{ pending_total }} waiting for review{% endif %}</h2>
+  {% if jobs %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>File</th><th class="hide-sm">Imported</th><th class="hide-sm">Found</th><th>Waiting</th></tr></thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td class="title-cell">{% if job.status == "failed" %}{{ job.filename }} <span class="confidence low">Failed</span>{% else %}<a href="{% url 'imports:job' job.id %}">{{ job.filename }}</a>{% endif %}</td>
+          <td class="hide-sm">{{ job.created_at|date:"d/m/Y H:i" }}</td>
+          <td class="hide-sm">{{ job.stats.candidates|default:0 }}</td>
+          <td>{% if job.pending %}<span class="confidence medium">{{ job.pending }}</span>{% else %}&mdash;{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">No imports yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Little Things{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container">
+    <p class="eyebrow reveal">Gifts</p>
+    <h1 class="display reveal">Little <em>things</em></h1>
+    <p class="lede reveal">And the thought behind each one.</p>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container">
+    {% if page.items %}
+    <div class="places">
+      {% for gift in page.items %}
+      <article class="place-card reveal">
+        {% if gift.photo %}<figure><img src="{{ gift.photo.urls.thumb }}" alt="{{ gift.gift }}" loading="lazy"></figure>{% endif %}
+        <div class="memory-body">
+          <p class="place-where">{{ gift.occasion|default:"" }}</p>
+          <h3>{{ gift.gift }}</h3>
+          <p class="muted">
+            {% if gift.given_by %}From {{ gift.given_by }}{% endif %}{% if gift.given_by and gift.given_to %} to {% elif gift.given_to %}To {% endif %}{{ gift.given_to }}
+            {% if gift.date %}<br>{{ gift.date|longdate }}{% endif %}
+          </p>
+          {% if gift.description %}<p class="clamp-3">{{ gift.description }}</p>{% endif %}
+          {% if gift.memory_id %}<a class="map-link" href="{% url 'content:memory_detail' gift.memory_id %}">The memory behind it</a>{% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% include "partials/pagination.html" %}
+    {% else %}
+      {% url 'dashboard:create' 'gifts' as admin_url %}
+      {% include "partials/empty.html" with message="No gifts added yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

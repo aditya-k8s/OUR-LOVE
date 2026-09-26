@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Things We Still Want To Do{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container narrow">
+    <p class="eyebrow reveal">Still to come</p>
+    <h1 class="display reveal">Things we still <em>want to do</em></h1>
+    {% if items %}<p class="lede reveal">{{ done }} of {{ items|length }} done.</p>{% endif %}
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container narrow">
+    {% if items %}
+      <div class="progress" aria-hidden="true"><span data-progress="{% widthratio done items|length 100 %}"></span></div>
+      {% include "partials/future_list.html" %}
+    {% else %}
+      {% url 'dashboard:create' 'future' as admin_url %}
+      {% include "partials/empty.html" with message="Not added yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

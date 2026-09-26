@@ -1,0 +1,14 @@
+{% load ourlove %}<a class="memory-card reveal" href="{% url 'content:memory_detail' memory.id %}">
+  {% if memory.cover %}
+  <figure><img src="{{ memory.cover.urls.thumb }}" alt="{{ memory.cover.caption|default:memory.title }}" loading="lazy" decoding="async"{% if memory.cover.width %} width="{{ memory.cover.width }}" height="{{ memory.cover.height }}"{% endif %}></figure>
+  {% endif %}
+  <div class="memory-body">
+    <p class="event-meta">
+      {% if memory.date %}<time datetime="{{ memory.date }}">{{ memory.date|longdate }}</time>{% else %}<span>Date unknown</span>{% endif %}
+      {% if memory.is_favorite %}<span class="chip chip--gold">Favourite</span>{% endif %}
+    </p>
+    <h3>{{ memory.title }}</h3>
+    {% if memory.description %}<p class="clamp-3">{{ memory.description }}</p>{% endif %}
+    {% if memory.location|location_text %}<p class="muted">{{ memory.location|location_text }}</p>{% endif %}
+  </div>
+</a>

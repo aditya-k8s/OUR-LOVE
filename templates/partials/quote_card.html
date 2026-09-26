@@ -1,0 +1,8 @@
+{% load ourlove %}<figure class="quote-card reveal">
+  <blockquote>{{ m.message|linebreaksbr }}</blockquote>
+  <figcaption>
+    {% if m.sender %}<strong>{{ m.sender }}</strong>{% endif %}
+    {% if m.date %}<time datetime="{{ m.date }}">{{ m.date|longdate }}</time>{% endif %}
+  </figcaption>
+  {% if m.context %}<p class="quote-context">{{ m.context }}</p>{% endif %}
+</figure>

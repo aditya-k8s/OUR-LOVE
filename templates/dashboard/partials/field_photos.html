@@ -1,0 +1,20 @@
+{% load ourlove %}{% with field=form|field:spec.name %}<div class="f wide{% if field.errors %} has-error{% endif %}">
+  <span class="f-label">{{ spec.label }}</span>
+  {% if photo_lookup %}
+  <div class="picker" role="group" aria-label="{{ spec.label }}">
+    {% if spec.kind == "photo" %}
+      <label><input type="radio" name="{{ spec.name }}" value=""{% if not field.value %} checked{% endif %}><span class="picker-empty">None</span></label>
+      {% for pid, photo in photo_lookup.items %}
+      <label title="{{ photo.caption|default:photo.original_name }}"><input type="radio" name="{{ spec.name }}" value="{{ pid }}"{% if field.value == pid %} checked{% endif %}><img src="{{ photo.urls.thumb }}" alt="{{ photo.caption|default:photo.original_name }}" loading="lazy"></label>
+      {% endfor %}
+    {% else %}
+      {% for pid, photo in photo_lookup.items %}
+      <label title="{{ photo.caption|default:photo.original_name }}"><input type="checkbox" name="{{ spec.name }}" value="{{ pid }}"{% if pid in field.value %} checked{% endif %}><img src="{{ photo.urls.thumb }}" alt="{{ photo.caption|default:photo.original_name }}" loading="lazy"><span class="order">{% icon "check" 12 %}</span></label>
+      {% endfor %}
+    {% endif %}
+  </div>
+  {% endif %}
+  <input class="file-input" type="file" name="{{ spec.name }}__upload" accept="image/jpeg,image/png,image/webp"{% if spec.kind == "photos" %} multiple{% endif %} aria-label="Upload {{ spec.label|lower }}">
+  <p class="help">{% if photo_lookup %}Select existing photos above, or upload new ones.{% else %}Upload photos (JPG, PNG, WEBP).{% endif %} Location data is removed automatically.</p>
+  {{ field.errors }}
+</div>{% endwith %}

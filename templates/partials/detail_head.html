@@ -1,0 +1,18 @@
+{% load ourlove %}{% if doc.cover %}
+<header class="detail-hero">
+  <img src="{{ doc.cover.urls.medium }}" alt="{{ doc.cover.caption|default:'' }}" fetchpriority="high">
+  <div class="container narrow">
+    <p class="eyebrow reveal">{{ eyebrow }}</p>
+    <h1 class="display reveal">{{ doc.title }}</h1>
+    <p class="lede reveal">{% if doc.date %}{{ doc.date|longdate }}{% else %}Date unknown{% endif %}</p>
+  </div>
+</header>
+{% else %}
+<header class="page-hero">
+  <div class="container narrow">
+    <p class="eyebrow reveal">{{ eyebrow }}</p>
+    <h1 class="display reveal">{{ doc.title }}</h1>
+    <p class="lede reveal">{% if doc.date %}{{ doc.date|longdate }}{% else %}Date unknown{% endif %}</p>
+  </div>
+</header>
+{% endif %}

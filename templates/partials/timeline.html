@@ -1,0 +1,32 @@
+{% load ourlove %}<div class="timeline">
+  {% for group in groups %}
+  <section class="timeline-year" aria-labelledby="year-{{ group.year }}">
+    <h3 class="year-label" id="year-{{ group.year }}">{{ group.year }}</h3>
+    {% for month in group.months %}
+      {% if month.name %}<p class="timeline-month">{{ month.name }}</p>{% endif %}
+      <ol class="timeline-list">
+        {% for event in month.events %}
+        <li class="timeline-item importance-{{ event.importance|default:'medium' }} reveal">
+          <a class="event-card{% if event.cover %} has-media{% endif %}" href="{% url 'content:event_detail' event.id %}">
+            <div>
+              <p class="event-meta">
+                {% if event.date %}<time datetime="{{ event.date }}">{{ event.date|daymonth }}</time>{% endif %}
+                {% if event.category %}<span class="chip{% if event.category == 'milestone' or event.category == 'first' %} chip--accent{% endif %}">{{ event.category|label_for:"timeline.category" }}</span>{% endif %}
+                {% if event.location|location_text %}<span>{{ event.location|location_text }}</span>{% endif %}
+              </p>
+              <h3>{{ event.title }}</h3>
+              {% if event.description %}<p class="clamp-3">{{ event.description }}</p>{% endif %}
+              {% if event.quote %}<p class="event-quote">&ldquo;{{ event.quote }}&rdquo;</p>{% endif %}
+              {% if event.tags %}<div class="chips">{% for tag in event.tags %}<span class="chip">{{ tag }}</span>{% endfor %}</div>{% endif %}
+            </div>
+            {% if event.cover %}
+            <div class="event-media reveal-img reveal"><img src="{{ event.cover.urls.thumb }}" alt="{{ event.cover.caption|default:event.title }}" loading="lazy" decoding="async"></div>
+            {% endif %}
+          </a>
+        </li>
+        {% endfor %}
+      </ol>
+    {% endfor %}
+  </section>
+  {% endfor %}
+</div>

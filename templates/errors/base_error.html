@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="center-screen">
+  <div class="hero-light" aria-hidden="true"></div>
+  <div>
+    <p class="error-code">{% block code %}{% endblock %}</p>
+    <h1 class="display error-message">{% block message %}{% endblock %}</h1>
+    <a class="btn" href="/">Go home</a>
+  </div>
+</div>
+{% endblock %}

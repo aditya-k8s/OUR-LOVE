@@ -1,0 +1,6 @@
+{% load ourlove %}<a class="envelope reveal" href="{% url 'content:letter_detail' letter.id %}">
+  <span class="letter-date">{% if letter.date %}{{ letter.date|longdate }}{% else %}Undated{% endif %}</span>
+  <h3>{{ letter.title }}</h3>
+  {% if letter.recipient %}<p>To {{ letter.recipient }}</p>{% endif %}
+  <span class="seal">{% icon "heart" 34 %}</span>
+</a>

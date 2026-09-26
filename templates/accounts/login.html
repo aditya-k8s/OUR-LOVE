@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Sign in{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="center-screen">
+  <div class="hero-light" aria-hidden="true"></div>
+  <form class="auth-card reveal" method="post" action="{% url 'accounts:login' %}" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <span class="brand-mark" aria-hidden="true">{% icon "heart" 28 %}</span>
+    <h1>{{ app_name }}</h1>
+    <p class="muted auth-tagline">Every moment has a story.</p>
+    {% if locked %}
+      <p class="form-error" role="alert">Too many attempts. Please wait fifteen minutes and try again.</p>
+    {% elif form.non_field_errors %}
+      <p class="form-error" role="alert">That username and password do not match.</p>
+    {% endif %}
+    <div class="field">
+      <label for="id_username">Username</label>
+      <input id="id_username" name="username" type="text" autocomplete="username" autocapitalize="none" required value="{{ form.username.value|default:'' }}">
+    </div>
+    <div class="field">
+      <label for="id_password">Password</label>
+      <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+    </div>
+    <button class="btn btn--solid" type="submit">Enter</button>
+  </form>
+</div>
+{% endblock %}

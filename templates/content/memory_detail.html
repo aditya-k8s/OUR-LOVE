@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}{{ memory.title }}{% endblock %}
+{% block body_class %}{% if memory.cover %}has-hero{% endif %}{% endblock %}
+{% block content %}
+{% include "partials/detail_head.html" with doc=memory eyebrow="Memory" %}
+<section class="section section--tight">
+  <div class="container narrow">
+    {% if memory.description %}<div class="prose reveal">{{ memory.description|linebreaks }}</div>{% else %}<p class="not-added">No description yet</p>{% endif %}
+    <dl class="detail-meta reveal">
+      {% if memory.location|location_text %}<div><dt>Where</dt><dd>{{ memory.location|location_text }}</dd></div>{% endif %}
+      {% if memory.place %}<div><dt>Place</dt><dd>{{ memory.place.name }}</dd></div>{% endif %}
+      {% if memory.people %}<div><dt>With</dt><dd>{{ memory.people|join:", " }}</dd></div>{% endif %}
+      {% if memory.mood_label %}<div><dt>Mood</dt><dd>{{ memory.mood_label }}</dd></div>{% endif %}
+      {% if memory.category %}<div><dt>Category</dt><dd>{{ memory.category|label_for:"memories.category" }}</dd></div>{% endif %}
+    </dl>
+    {% if memory.tags %}<div class="chips">{% for tag in memory.tags %}<a class="chip" href="{% url 'content:memories' %}?tag={{ tag|urlencode }}">{{ tag }}</a>{% endfor %}</div>{% endif %}
+  </div>
+</section>
+{% include "partials/detail_media.html" with doc=memory %}
+{% endblock %}

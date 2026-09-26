@@ -1,0 +1,117 @@
+{% load static ourlove %}<!doctype html>
+<html lang="en-GB" class="no-js" data-default-theme="{{ site.appearance.default_theme|default:'dark' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}{{ app_name }}{% endblock %}{% block title_suffix %} &middot; {{ app_name }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}A private, cinematic memory of our story.{% endblock %}">
+  {% if not allow_indexing %}<meta name="robots" content="noindex, nofollow, noarchive">{% endif %}
+  <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ app_name }}">
+  <meta property="og:title" content="{% block og_title %}{{ app_name }}{% endblock %}">
+  <meta property="og:description" content="Every moment has a story.">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/og.png' %}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ app_name }}">
+  <meta name="twitter:description" content="Every moment has a story.">
+  <meta name="theme-color" content="{{ site.pwa.theme_color }}">
+  <meta name="color-scheme" content="dark light">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="{{ site.pwa.short_name }}">
+  <link rel="manifest" href="{% url 'manifest' %}">
+  <link rel="icon" href="{% static 'icons/logo.svg' %}" type="image/svg+xml">
+  <link rel="icon" href="{% static 'icons/icon-192.png' %}" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="{% static 'icons/apple-touch-icon.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="{% static 'css/ourlove.css' %}">
+  {% block extra_css %}{% endblock %}
+  <link rel="stylesheet" href="{% url 'theme_css' %}">
+  <script src="{% static 'js/theme-init.js' %}"></script>
+</head>
+<body class="{% block body_class %}{% endblock %}"
+      data-easter="{% if site.easter_egg.enabled %}on{% else %}off{% endif %}"
+      data-easter-message="{{ site.easter_egg.message }}"
+      data-sw="{% url 'service_worker' %}">
+  <div class="grain" aria-hidden="true"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  {% block header %}
+  <header class="site-header" data-header>
+    <div class="container">
+      <div class="brand">
+        <button class="brand-mark" type="button" data-secret-trigger aria-label="{{ app_name }}">{% icon "heart" 22 %}</button>
+        <a class="brand-name" href="{% url 'content:home' %}">{{ app_name }}</a>
+      </div>
+      <nav class="nav" aria-label="Main">
+        {% for item in nav %}<a href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a>{% endfor %}
+      </nav>
+      <div class="header-actions">
+        <a class="icon-btn" href="{% url 'content:search' %}" aria-label="Search">{% icon "search" %}</a>
+        {% if site.music.enabled and site.music.url %}
+        <button class="icon-btn" type="button" data-music-toggle aria-pressed="false" aria-label="Music{% if site.music.title %}: {{ site.music.title }}{% endif %}" title="Music">{% icon "music" %}</button>
+        {% endif %}
+        <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Switch light or dark mode">
+          <span class="icon-moon">{% icon "moon" %}</span><span class="icon-sun">{% icon "sun" %}</span>
+        </button>
+        <button class="icon-btn install-btn" type="button" data-install hidden aria-label="Install {{ app_name }}" title="Install {{ app_name }}">{% icon "install" %}</button>
+        {% if is_admin %}<a class="icon-btn" href="{% url 'dashboard:home' %}" aria-label="Dashboard" title="Dashboard">{% icon "settings" %}</a>{% endif %}
+      </div>
+    </div>
+  </header>
+  {% endblock %}
+
+  <main id="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="site-footer">
+    <div class="container">
+      <span>{{ app_name }}{% if couple_names %} &middot; {{ couple_names }}{% endif %}</span>
+      <span>
+        <a href="{% url 'content:more' %}">Everything</a>
+        &nbsp;&middot;&nbsp;
+        {% if user.is_authenticated %}
+          <form method="post" action="{% url 'accounts:logout' %}" data-logout>{% csrf_token %}<button class="link-btn" type="submit">Sign out</button></form>
+        {% else %}
+          <a href="{% url 'accounts:login' %}">Sign in</a>
+        {% endif %}
+      </span>
+    </div>
+  </footer>
+
+  <nav class="bottom-nav" aria-label="Mobile">
+    {% for item in mobile_nav %}
+    <a href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon 21 %}<span>{{ item.label }}</span></a>
+    {% endfor %}
+  </nav>
+  {% endblock %}
+
+  {% if messages %}
+  <div class="toast-stack" role="status" data-toasts>
+    {% for message in messages %}<div class="toast {{ message.tags }}">{{ message }}</div>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if site.music.enabled and site.music.url %}
+  <audio data-music src="{{ site.music.url }}" preload="none" loop></audio>
+  {% endif %}
+
+  <div class="secret" data-secret role="dialog" aria-modal="true" aria-label="A little secret">
+    <div>
+      <p data-secret-text></p>
+      <button class="btn btn--small" type="button" data-secret-close>Close</button>
+    </div>
+  </div>
+
+  {% include "partials/lightbox.html" %}
+
+  <script src="{% static 'js/ourlove.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,28 @@
+# Secrets - never commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local data
+data/
+media/
+staticfiles/
+*.sqlite3
+exports/
+our-love-*.json
+our-love-*.zip
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

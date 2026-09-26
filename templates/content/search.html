@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container narrow">
+    <p class="eyebrow">Search</p>
+    <h1 class="display">Find a <em>moment</em></h1>
+    <form class="search-form" method="get" role="search">
+      <label class="sr-only" for="q">Search memories, places, letters and more</label>
+      <input class="search-input" id="q" type="search" name="q" value="{{ q }}" placeholder="A place, a word, a name&hellip;" autocomplete="off" autofocus>
+      <button class="btn btn--solid" type="submit">Search</button>
+    </form>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container narrow">
+    {% if q %}
+      {% if q|length < 2 %}
+        <p class="muted">Type at least two characters.</p>
+      {% elif groups %}
+        <p class="result-count">{{ total }} result{{ total|pluralize }} for &ldquo;{{ q }}&rdquo;</p>
+        {% for group in groups %}
+        <div class="search-group">
+          <h2>{{ group.content_type.label_plural }}</h2>
+          <ul class="search-results">
+            {% for doc in group.results %}
+            <li>
+              {% with key=group.content_type.key %}
+              <a href="{% if key == 'memories' %}{% url 'content:memory_detail' doc.id %}{% elif key == 'timeline' %}{% url 'content:event_detail' doc.id %}{% elif key == 'letters' %}{% url 'content:letter_detail' doc.id %}{% elif key == 'photos' %}{% url 'content:gallery' %}{% elif key == 'videos' %}{% url 'content:moments' %}{% elif key == 'messages' %}{% url 'content:words' %}{% elif key == 'places' %}{% url 'content:places' %}{% elif key == 'gifts' %}{% url 'content:gifts' %}{% elif key == 'dates' %}{% url 'content:calendar' %}{% else %}{% url 'content:future' %}{% endif %}">
+                <span class="thumb">{% if key == 'photos' %}<img src="{{ doc.urls.thumb }}" alt="" loading="lazy">{% elif doc.cover %}<img src="{{ doc.cover.urls.thumb }}" alt="" loading="lazy">{% else %}{% icon "heart-outline" 18 %}{% endif %}</span>
+                <span>
+                  <h3>{% if key == 'messages' %}&ldquo;{{ doc.message|truncatechars:90 }}&rdquo;{% else %}{{ doc|get_item:group.content_type.title_field|default:"Untitled" }}{% endif %}</h3>
+                  <p>{% with d=doc|get_item:group.content_type.date_field %}{% if d %}{{ d|longdate }}{% endif %}{% endwith %}{% if doc.location|location_text %} &middot; {{ doc.location|location_text }}{% elif doc.city %} &middot; {{ doc.city }}{% endif %}</p>
+                </span>
+              </a>
+              {% endwith %}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state"><p>Nothing found for &ldquo;{{ q }}&rdquo;</p><span>Try another word, a place or a name.</span></div>
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Places{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container">
+    <p class="eyebrow reveal">Places</p>
+    <h1 class="display reveal">Places that became <em>memories</em></h1>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container">
+    {% if page.items %}
+    <div class="places">
+      {% for place in page.items %}
+      <article class="place-card reveal">
+        {% if place.photos %}<figure><img src="{{ place.photos.0.urls.thumb }}" alt="{{ place.name }}" loading="lazy"></figure>{% endif %}
+        <div class="memory-body">
+          <p class="place-where">{{ place.city }}{% if place.city and place.country %}, {% endif %}{{ place.country }}</p>
+          <h3>{{ place.name }}</h3>
+          {% if place.date %}<p class="muted">{{ place.date|longdate }}</p>{% endif %}
+          {% if place.description %}<p class="clamp-3">{{ place.description }}</p>{% endif %}
+          {% if place.show_map %}
+          <a class="map-link" href="https://www.openstreetmap.org/?mlat={{ place.latitude }}&amp;mlon={{ place.longitude }}#map=15/{{ place.latitude }}/{{ place.longitude }}" target="_blank" rel="noopener noreferrer">{% icon "pin" 15 %} Open map</a>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% include "partials/pagination.html" %}
+    {% else %}
+      {% url 'dashboard:create' 'places' as admin_url %}
+      {% include "partials/empty.html" with message="No places added yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

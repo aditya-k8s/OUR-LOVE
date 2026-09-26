@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Our Calendar{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container">
+    <p class="eyebrow reveal">Our calendar</p>
+    <h1 class="display reveal">The days that <em>matter</em></h1>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container">
+    <div class="calendar-head">
+      <a class="icon-btn" href="?year={{ prev.year }}&amp;month={{ prev.month }}" aria-label="Previous month">{% icon "left" %}</a>
+      <h2>{{ month_name }} {{ year }}</h2>
+      <a class="icon-btn" href="?year={{ next.year }}&amp;month={{ next.month }}" aria-label="Next month">{% icon "right" %}</a>
+    </div>
+    <div class="calendar-grid" role="grid" aria-label="{{ month_name }} {{ year }}">
+      {% for d in weekdays %}<div class="dow" role="columnheader">{{ d }}</div>{% endfor %}
+      {% for week in weeks %}{% for cell in week %}
+        {% if cell.date %}
+        <div class="day{% if cell.items %} has-events{% endif %}{% if cell.date == today %} is-today{% endif %}" role="gridcell">
+          <span class="num">{{ cell.date.day }}</span>
+          {% if cell.items %}<ul class="day-events">{% for item in cell.items %}<li class="kind-{{ item.kind|default:item.source }}" title="{{ item.title }}">{{ item.title }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        {% else %}<div class="day is-empty" role="gridcell"></div>{% endif %}
+      {% endfor %}{% endfor %}
+    </div>
+
+    {% if agenda %}
+    <ul class="agenda" aria-label="This month">
+      {% for day, items in agenda %}{% for item in items %}
+      <li class="reveal">
+        <span class="agenda-day">{{ day }}</span>
+        <div>
+          <h3>{{ item.title }}</h3>
+          <p>
+            {% if item.source == "timeline" %}On the timeline{% elif item.source == "future" %}A plan{% else %}{{ item.kind|label_for:"dates.kind" }}{% if item.recurring_yearly and item.years > 0 %} &middot; {{ item.years }} year{{ item.years|pluralize }}{% endif %}{% endif %}
+          </p>
+        </div>
+      </li>
+      {% endfor %}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="otd-empty">Nothing recorded for {{ month_name }} yet.</p>
+    {% endif %}
+
+    {% if upcoming %}
+    <div class="section-head" id="upcoming"><p class="eyebrow">Coming up</p></div>
+    <ul class="agenda">
+      {% for item in upcoming %}
+      <li><span class="agenda-day">{{ item.next_date|dayonly }}</span><div><h3>{{ item.title }}</h3><p>{{ item.next_date|longdate }}{% if item.in_days == 0 %} &middot; today{% elif item.in_days == 1 %} &middot; tomorrow{% else %} &middot; in {{ item.in_days }} days{% endif %}</p></div></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

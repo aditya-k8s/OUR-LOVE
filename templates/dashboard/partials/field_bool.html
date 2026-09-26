@@ -1,0 +1,4 @@
+{% if field %}<label class="f-check" for="{{ field.id_for_label }}">
+  {{ field }}
+  <span><strong>{{ field.label }}</strong>{% if field.help_text %}<span>{{ field.help_text }}</span>{% endif %}</span>
+</label>{% endif %}

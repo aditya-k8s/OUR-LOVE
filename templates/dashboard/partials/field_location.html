@@ -1,0 +1,11 @@
+{% load ourlove %}<div class="f wide">
+  <span class="f-label">{{ spec.label }}</span>
+  <div class="loc-row">
+    {% with f1="location__name" f2="location__city" f3="location__country" %}
+    {% with a=form|field:f1 b=form|field:f2 c=form|field:f3 %}
+    <span><label class="sr-only" for="{{ a.id_for_label }}">Place</label>{{ a }}</span>
+    <span><label class="sr-only" for="{{ b.id_for_label }}">City</label>{{ b }}</span>
+    <span><label class="sr-only" for="{{ c.id_for_label }}">Country</label>{{ c }}</span>
+    {% endwith %}{% endwith %}
+  </div>
+</div>

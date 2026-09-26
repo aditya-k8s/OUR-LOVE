@@ -1,0 +1,31 @@
+# docker compose up --build
+#
+# Uses MongoDB Atlas from MONGODB_URI in .env. For a fully local setup without
+# Atlas, start the optional MongoDB service too:
+#   docker compose --profile local-mongo up --build
+# and set MONGODB_URI=mongodb://mongo:27017 in .env.
+services:
+  web:
+    build: .
+    env_file: .env
+    environment:
+      SQLITE_PATH: /app/data/auth.sqlite3
+      MEDIA_ROOT: /app/media
+    ports:
+      - "8000:8000"
+    volumes:
+      - auth-data:/app/data     # users and sessions
+      - media-data:/app/media   # photos and videos when MEDIA_STORAGE_PROVIDER=local
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    profiles: ["local-mongo"]
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+volumes:
+  auth-data:
+  media-data:
+  mongo-data:

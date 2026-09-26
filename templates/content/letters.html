@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Letters{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container">
+    <p class="eyebrow reveal">Letters</p>
+    <h1 class="display reveal">Written slowly, <em>read again</em></h1>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container">
+    {% if page.items %}
+      <div class="letters">{% for letter in page.items %}{% include "partials/envelope.html" %}{% endfor %}</div>
+      {% include "partials/pagination.html" %}
+    {% else %}
+      {% url 'dashboard:create' 'letters' as admin_url %}
+      {% include "partials/empty.html" with message="No letters written yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

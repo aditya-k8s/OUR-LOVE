@@ -1,0 +1,16 @@
+{% load ourlove %}<ul class="future-list">
+  {% for item in items %}
+  <li class="future-item reveal{% if item.completed %} is-done{% endif %}">
+    <span class="check" aria-hidden="true">{% icon "check" 16 %}</span>
+    <div>
+      <h3>{{ item.title }}<span class="sr-only">{% if item.completed %} (done){% else %} (not yet){% endif %}</span></h3>
+      {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+      <p class="future-meta">
+        {% if item.completed %}{% if item.completion_date %}Done on {{ item.completion_date|longdate }}{% else %}Done{% endif %}
+        {% elif item.target_date %}Hoping for {{ item.target_date|longdate }}{% endif %}
+      </p>
+      {% if item.completed and item.completion_photo %}<img src="{{ item.completion_photo.urls.thumb }}" alt="{{ item.title }}" loading="lazy">{% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>

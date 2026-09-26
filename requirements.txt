@@ -1,0 +1,11 @@
+# Runtime dependencies for Our Love
+Django>=5.1,<5.2
+djangorestframework>=3.15,<4
+pymongo[srv]>=4.8,<5
+python-dotenv>=1.0,<2
+Pillow>=10.4
+whitenoise>=6.7,<7
+gunicorn>=23.0
+django-storages[s3]>=1.14,<2
+pypdf>=4.3
+psycopg[binary]>=3.2      # only used when DATABASE_URL points at Postgres

@@ -1,0 +1,84 @@
+{% extends "dashboard/base.html" %}
+{% load ourlove %}
+{% block title %}Review memory{% endblock %}
+{% block dash %}
+<div class="dash-head">
+  <div>
+    <p class="breadcrumb"><a href="{% url 'dashboard:home' %}">Dashboard</a> / <a href="{% url 'imports:index' %}">Import history</a> / <a href="{% url 'imports:job' pending.job_id %}">{{ job.filename|default:"Import" }}</a></p>
+    <h1>Review a possible memory</h1>
+    <p><span class="confidence {{ pending.confidence }}">Confidence: {{ pending.confidence|capfirst }}</span> &nbsp; Status: {{ pending.status|capfirst }}</p>
+  </div>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  <input type="hidden" name="continue" value="1">
+  <div class="review-grid">
+    <div>
+      <div class="panel">
+        <h2>Suggested memory</h2>
+        <div class="form-grid">
+          {% with field=form.target %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          {% with field=form.date %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          <div class="wide">{% with field=form.title %}{% include "dashboard/partials/field.html" %}{% endwith %}</div>
+          {% with field=form.category %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          {% with field=form.importance %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          {% with field=form.first_key %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          {% with field=form.sender %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          <div class="wide">{% with field=form.description %}{% include "dashboard/partials/field.html" %}{% endwith %}</div>
+          <div class="wide">{% with field=form.quote %}{% include "dashboard/partials/field.html" %}{% endwith %}</div>
+          {% with field=form.location_name %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          {% with field=form.location_city %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          {% with field=form.location_country %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          {% with field=form.people %}{% include "dashboard/partials/field.html" %}{% endwith %}
+          {% with field=form.tags %}{% include "dashboard/partials/field.html" %}{% endwith %}
+        </div>
+      </div>
+
+      {% if duplicates %}
+      <div class="dup-card">
+        <h3>Possible duplicate found</h3>
+        {% for dup in duplicates %}
+        <label class="dup-option">
+          <input type="radio" name="merge_into" value="{{ dup.collection }}:{{ dup.id }}"{% if forloop.first %} checked{% endif %}>
+          <span><strong>Existing:</strong> {{ dup.title }}{% if dup.date %} &mdash; {{ dup.date|longdate }}{% endif %} <span class="muted">({% widthratio dup.score 1 100 %}% similar)</span></span>
+        </label>
+        {% endfor %}
+        <dl class="dup-compare">
+          <div><dt>Imported</dt><dd>{{ pending.suggested.title }}{% if pending.suggested.date %} &mdash; {{ pending.suggested.date|longdate }}{% endif %}</dd></div>
+        </dl>
+        <p class="help muted">Merge adds the imported text to the existing memory and fills only fields that are empty there. Keep both approves it as a new memory.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <aside>
+      <div class="panel">
+        <h2>Why this was suggested</h2>
+        <ul class="reasons">{% for r in pending.reasons %}<li>{{ r }}</li>{% endfor %}</ul>
+        {% if pending.written_on %}<p class="help muted">Message written on {{ pending.written_on|longdate }} (not necessarily the date of the event).</p>{% endif %}
+        {% if pending.origin %}<p class="help muted">Conversation: {{ pending.origin }}</p>{% endif %}
+      </div>
+      <div class="panel">
+        <h2>Original text</h2>
+        <pre class="excerpt">{{ pending.source_excerpt }}</pre>
+      </div>
+    </aside>
+  </div>
+
+  {% if pending.status == "pending" %}
+  <div class="form-foot">
+    <button class="btn btn--small btn--danger spacer" type="submit" name="action" value="reject">Reject</button>
+    <button class="btn btn--small" type="submit" name="action" value="save">Save for later</button>
+    {% if duplicates %}
+      <button class="btn btn--small" type="submit" name="action" value="merge">Merge</button>
+      <button class="btn btn--small btn--solid" type="submit" name="action" value="approve">Keep both</button>
+    {% else %}
+      <button class="btn btn--small btn--solid" type="submit" name="action" value="approve">Approve</button>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="notice">This candidate has already been {{ pending.status }}.{% if pending.resolved_ref %} It is stored in {{ pending.resolved_ref.collection }}.{% endif %}</div>
+  {% endif %}
+</form>
+{% endblock %}

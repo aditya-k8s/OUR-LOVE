@@ -1,0 +1,38 @@
+{% extends "dashboard/base.html" %}
+{% load ourlove %}
+{% block title %}Photos{% endblock %}
+{% block dash %}
+<div class="dash-head">
+  <div>
+    <p class="breadcrumb"><a href="{% url 'dashboard:home' %}">Dashboard</a> / Photos</p>
+    <h1>Photos</h1>
+    <p>Location data (EXIF and GPS) is removed from every upload, and thumbnails are generated automatically. Add captions, dates and tags afterwards.</p>
+  </div>
+  <div class="dash-actions"><a class="btn btn--small" href="{% url 'content:gallery' %}">View gallery</a></div>
+</div>
+
+{% include "dashboard/partials/dropzone.html" with kind="photo" accept="image/jpeg,image/png,image/webp" hint="JPG, PNG or WEBP" %}
+
+<form class="toolbar" method="get" role="search">
+  <input class="search-input" type="search" name="q" value="{{ q }}" placeholder="Search captions and tags" aria-label="Search photos">
+  <span class="muted">{{ total }} photo{{ total|pluralize }}</span>
+</form>
+
+{% if items %}
+<div class="photo-grid">
+  {% for photo in items %}
+  <div class="photo-tile">
+    <a class="thumb" href="{% url 'dashboard:edit' 'photos' photo.id %}" aria-label="Edit photo details"><img src="{{ photo.urls.thumb }}" alt="{{ photo.caption|default:photo.original_name }}" loading="lazy"></a>
+    <div class="meta">
+      <span title="{{ photo.caption|default:photo.original_name }}">{{ photo.caption|default:"No caption" }}</span>
+      {% if photo.is_public %}<span class="state is-public" title="Public"></span>{% endif %}
+      <form method="post" action="{% url 'dashboard:delete' 'photos' photo.id %}" data-confirm="Delete this photo everywhere it is used?">{% csrf_token %}<button class="icon-btn" type="submit" aria-label="Delete photo">{% icon "trash" %}</button></form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% include "dashboard/partials/pages.html" %}
+{% elif q %}
+<div class="empty-state"><p>Nothing matches &ldquo;{{ q }}&rdquo;</p></div>
+{% endif %}
+{% endblock %}

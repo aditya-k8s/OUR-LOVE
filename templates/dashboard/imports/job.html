@@ -1,0 +1,60 @@
+{% extends "dashboard/base.html" %}
+{% load ourlove %}
+{% block title %}Pending memories{% endblock %}
+{% block dash %}
+<div class="dash-head">
+  <div>
+    <p class="breadcrumb"><a href="{% url 'dashboard:home' %}">Dashboard</a> / <a href="{% url 'imports:index' %}">Import history</a> / {{ job.filename }}</p>
+    <h1>Pending memories</h1>
+    <p>Examined {{ job.stats.passages|default:0 }} passages and found {{ job.stats.candidates|default:0 }} possible memories: {{ job.stats.high|default:0 }} high, {{ job.stats.medium|default:0 }} medium and {{ job.stats.low|default:0 }} low confidence{% if job.stats.duplicates %}, {{ job.stats.duplicates }} possible duplicate{{ job.stats.duplicates|pluralize }}{% endif %}.</p>
+  </div>
+  {% if items and status == "pending" %}
+  <div class="dash-actions"><a class="btn btn--small btn--solid" href="{% url 'imports:review' items.0.id %}">Start reviewing</a></div>
+  {% endif %}
+</div>
+
+<nav class="tabs" aria-label="Status">
+  {% for s, n in counts.items %}<a href="?status={{ s }}"{% if s == status %} aria-current="true"{% endif %}>{{ s|capfirst }} &middot; {{ n }}</a>{% endfor %}
+</nav>
+{% if status == "pending" %}
+<nav class="tabs" aria-label="Confidence">
+  <a href="?status=pending"{% if not confidence %} aria-current="true"{% endif %}>Any confidence</a>
+  <a href="?status=pending&amp;confidence=high"{% if confidence == "high" %} aria-current="true"{% endif %}>High</a>
+  <a href="?status=pending&amp;confidence=medium"{% if confidence == "medium" %} aria-current="true"{% endif %}>Medium</a>
+  <a href="?status=pending&amp;confidence=low"{% if confidence == "low" %} aria-current="true"{% endif %}>Low</a>
+</nav>
+{% endif %}
+
+{% if items %}
+<form method="post" action="{% url 'imports:bulk' job.id %}">
+  {% csrf_token %}
+  <ul class="candidates">
+    {% for item in items %}
+    <li class="candidate">
+      {% if status == "pending" %}<input type="checkbox" name="ids" value="{{ item.id }}" aria-label="Select">{% else %}<span></span>{% endif %}
+      <div>
+        <h3><a href="{% url 'imports:review' item.id %}">{{ item.suggested.title|default:"Untitled" }}</a></h3>
+        <div class="meta">
+          <span class="confidence {{ item.confidence }}">Confidence: {{ item.confidence|capfirst }}</span>
+          <span>{% if item.suggested.date %}{{ item.suggested.date|longdate }}{% else %}Date unknown{% endif %}</span>
+          <span>{{ targets|get_item:item.target }}</span>
+          {% if item.possible_duplicates %}<span class="dup-flag">Possible duplicate</span>{% endif %}
+          {% if item.status == "approved" or item.status == "merged" %}<span>{{ item.status|capfirst }}</span>{% endif %}
+        </div>
+        <p>{{ item.suggested.description|truncatechars:220 }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if status == "pending" %}
+  <div class="form-foot">
+    <button class="btn btn--small btn--danger spacer" type="submit" name="action" value="delete_job" data-confirm="Remove this import? Pending and rejected candidates are deleted; approved memories are kept.">Remove import</button>
+    <button class="btn btn--small" type="submit" name="action" value="reject_low" data-confirm="Reject every low-confidence candidate in this import?">Reject all low confidence</button>
+    <button class="btn btn--small" type="submit" name="action" value="reject_selected">Reject selected</button>
+  </div>
+  {% endif %}
+</form>
+{% else %}
+<div class="empty-state"><p>Nothing here.</p>{% if status == "pending" %}<span>Every candidate from this import has been reviewed.</span>{% endif %}</div>
+{% endif %}
+{% endblock %}

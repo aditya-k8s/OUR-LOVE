@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}{{ event.title }}{% endblock %}
+{% block body_class %}{% if event.cover %}has-hero{% endif %}{% endblock %}
+{% block content %}
+{% include "partials/detail_head.html" with doc=event eyebrow=event.category|label_for:"timeline.category" %}
+<section class="section section--tight">
+  <div class="container narrow">
+    {% if event.quote %}<p class="event-quote reveal">&ldquo;{{ event.quote }}&rdquo;</p>{% endif %}
+    {% if event.description %}<div class="prose reveal">{{ event.description|linebreaks }}</div>{% else %}<p class="not-added">No description yet</p>{% endif %}
+    <dl class="detail-meta reveal">
+      {% if event.end_date %}<div><dt>Until</dt><dd>{{ event.end_date|longdate }}</dd></div>{% endif %}
+      {% if event.location|location_text %}<div><dt>Where</dt><dd>{{ event.location|location_text }}</dd></div>{% endif %}
+      {% if event.place %}<div><dt>Place</dt><dd>{{ event.place.name }}</dd></div>{% endif %}
+      {% if event.people %}<div><dt>With</dt><dd>{{ event.people|join:", " }}</dd></div>{% endif %}
+      {% if event.first_key %}<div><dt>One of our firsts</dt><dd>{{ event.first_key|label_for:"timeline.first_key" }}</dd></div>{% endif %}
+    </dl>
+    {% if event.tags %}<div class="chips">{% for tag in event.tags %}<a class="chip" href="{% url 'content:story' %}?tag={{ tag|urlencode }}">{{ tag }}</a>{% endfor %}</div>{% endif %}
+    <div class="section-link"><a class="btn btn--small" href="{% url 'content:story' %}#year-{{ event.date|yearof }}">Back to the timeline</a></div>
+  </div>
+</section>
+{% include "partials/detail_media.html" with doc=event %}
+{% endblock %}

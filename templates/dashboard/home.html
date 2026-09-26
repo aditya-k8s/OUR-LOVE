@@ -1,0 +1,72 @@
+{% extends "dashboard/base.html" %}
+{% load ourlove %}
+{% block title %}Overview{% endblock %}
+{% block dash %}
+<div class="dash-head">
+  <div>
+    <p class="eyebrow">Dashboard</p>
+    <h1>Your story, at a glance</h1>
+  </div>
+  <div class="dash-actions">
+    <a class="btn btn--solid btn--small" href="{% url 'dashboard:create' 'memories' %}">{% icon "plus" 16 %} Add memory</a>
+    <a class="btn btn--small" href="{% url 'dashboard:create' 'timeline' %}">{% icon "plus" 16 %} Timeline moment</a>
+    <a class="btn btn--small" href="{% url 'dashboard:list' 'photos' %}">{% icon "upload" 16 %} Upload photos</a>
+  </div>
+</div>
+
+{% if demo_count %}
+<div class="notice">
+  <strong>Demo content is present ({{ demo_count }} items).</strong> Everything titled &ldquo;Demo &hellip;&rdquo; is placeholder text.
+  <form method="post" action="{% url 'dashboard:clear_demo' %}" data-confirm="Remove all demo content?">{% csrf_token %}<button class="btn btn--small btn--danger" type="submit">Remove demo content</button></form>
+</div>
+{% endif %}
+
+<div class="kpis">
+  {% for s in stats %}
+  <a class="kpi{% if s.key == 'pending' and s.value %} is-alert{% endif %}" href="{{ s.url }}"><span>{{ s.label }}</span><strong>{{ s.value }}</strong></a>
+  {% endfor %}
+</div>
+
+<div class="panel-grid">
+  <section class="panel" aria-labelledby="activity-title">
+    <h2 id="activity-title">Moments recorded per month</h2>
+    <div class="chart" role="img" aria-label="Bar chart of memories and timeline moments per month for the last twelve months, by the date each moment happened.">
+      {% for c in chart %}
+      <div class="chart-col" tabindex="0">
+        <span class="chart-tip">{{ c.label }} {{ c.year }}: {{ c.value }}</span>
+        <span class="chart-bar{% if not c.value %} is-zero{% endif %}" data-height="{{ c.height }}"></span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="chart-labels" aria-hidden="true">{% for c in chart %}<span>{{ c.label }}</span>{% endfor %}</div>
+    <p class="chart-summary">{{ chart_total }} moment{{ chart_total|pluralize }} dated in the last twelve months.</p>
+    <table class="sr-only">
+      <caption>Moments per month</caption>
+      <thead><tr><th scope="col">Month</th><th scope="col">Moments</th></tr></thead>
+      <tbody>{% for c in chart %}<tr><td>{{ c.label }} {{ c.year }}</td><td>{{ c.value }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
+
+  <section class="panel" aria-labelledby="setup-title">
+    <h2 id="setup-title">Getting started &middot; {{ checklist_done }} of {{ checklist|length }}</h2>
+    <ul class="checklist">
+      {% for label, done, url in checklist %}
+      <li><a href="{{ url }}" class="{% if done %}is-done{% endif %}"><span class="tick">{% if done %}{% icon "check" 13 %}{% endif %}</span><span>{{ label }}</span></a></li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="panel" aria-labelledby="recent-title">
+  <h2 id="recent-title">Recently edited</h2>
+  {% if recent %}
+  <ul class="recent">
+    {% for r in recent %}
+    <li><a href="{% url 'dashboard:edit' r.ct.key r.doc.id %}"><span class="kind">{{ r.ct.label }}</span><span>{{ r.title|truncatechars:80 }}</span></a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Nothing yet. Start with a memory, or import your chat history.</p>
+  {% endif %}
+</section>
+{% endblock %}

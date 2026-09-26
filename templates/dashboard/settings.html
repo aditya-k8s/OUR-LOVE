@@ -1,0 +1,43 @@
+{% extends "dashboard/base.html" %}
+{% load ourlove %}
+{% block title %}Settings{% endblock %}
+{% block dash %}
+<div class="dash-head">
+  <div>
+    <p class="breadcrumb"><a href="{% url 'dashboard:home' %}">Dashboard</a> / Settings</p>
+    <h1>Settings</h1>
+    <p>Everything the site shows about the two of you. Leave anything empty until you want to add it; nothing is filled in for you.</p>
+  </div>
+</div>
+<div class="notice">
+  <strong>Site access:</strong>
+  {% if public_site %}The public site is <strong>enabled</strong>. Visitors who are not signed in see only items marked Public.{% else %}The site is <strong>private</strong>. Everyone must sign in. (Set <code>PUBLIC_SITE_ENABLED</code> in the environment to change this.){% endif %}
+</div>
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% for title, fields in form.sections %}
+  <div class="panel">
+    <fieldset class="fieldset">
+      <legend>{{ title }}</legend>
+      <div class="form-grid">
+        {% for field in fields %}
+          {% if field.field.widget.input_type == "checkbox" %}
+            {% include "dashboard/partials/field_bool.html" %}
+          {% else %}
+            <div class="f{% if field.field.widget.attrs.rows %} wide{% endif %}{% if field.errors %} has-error{% endif %}">
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+              {{ field.errors }}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </fieldset>
+  </div>
+  {% endfor %}
+  <div class="form-foot">
+    <button class="btn btn--small btn--solid" type="submit">Save settings</button>
+  </div>
+</form>
+{% endblock %}

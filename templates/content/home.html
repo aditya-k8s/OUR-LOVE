@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}{{ app_name }}{% endblock %}
+{% block title_suffix %} &middot; Every moment has a story{% endblock %}
+{% block body_class %}has-hero{% endblock %}
+
+{% block content %}
+{# ------------------------------------------------------------------ HERO #}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-media" data-parallax>
+    {% if hero.video %}
+      <video src="{{ hero.video }}" autoplay muted loop playsinline preload="metadata"{% if hero.photo %} poster="{{ hero.photo.medium }}"{% endif %} aria-hidden="true"></video>
+    {% elif hero.photo %}
+      <img src="{{ hero.photo.medium }}" alt="" fetchpriority="high" decoding="async">
+    {% endif %}
+  </div>
+  <div class="hero-light" aria-hidden="true"></div>
+  <canvas class="hero-particles" data-particles aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    {% if couple_names %}<p class="hero-names reveal">{{ couple_names }}</p>{% endif %}
+    <h1 class="hero-title reveal" id="hero-title">{{ site.appearance.hero_title|default:app_name }}</h1>
+    {% if site.appearance.hero_subtitle %}<p class="hero-sub reveal" data-delay="0.15">{{ site.appearance.hero_subtitle|linebreaksbr }}</p>{% endif %}
+    <a class="btn reveal" href="#story">Explore our story</a>
+
+    {% if duration %}
+    <div class="together reveal" data-start="{{ start_date }}">
+      <p class="together-label">Together for</p>
+      <ul class="together-units">
+        {% for value, unit in duration.parts %}<li><strong>{{ value }}</strong><span>{{ unit }}</span></li>{% endfor %}
+      </ul>
+    </div>
+    {% elif is_admin %}
+    <p class="together muted reveal">Add your relationship start date in <a href="{% url 'dashboard:settings' %}">Settings</a> to show how long you have been together.</p>
+    {% endif %}
+  </div>
+  <span class="scroll-cue" aria-hidden="true"></span>
+</section>
+
+{# ------------------------------------------------------------------ INTERLUDE #}
+<section class="interlude" aria-hidden="true">
+  <div class="container narrow">
+    <p class="reveal">Some stories are written.</p>
+    <p class="reveal">Ours was lived.</p>
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ STORY #}
+<section class="section" id="story" aria-labelledby="story-title">
+  <div class="container">
+    <div class="story-intro">
+      <div>
+        <p class="eyebrow reveal">Our story</p>
+        <h2 class="display reveal" id="story-title">How it all <em>started</em></h2>
+      </div>
+      <div class="story-text reveal">
+        {% if site.relationship.story_intro %}
+          {{ site.relationship.story_intro|linebreaks }}
+        {% else %}
+          <p class="not-added">Not added yet</p>
+          {% if is_admin %}<a class="btn btn--small" href="{% url 'dashboard:settings' %}">Write how it started</a>{% endif %}
+        {% endif %}
+        {% if site.relationship.first_meeting_date %}
+        <p class="muted">We first met on {{ site.relationship.first_meeting_date|longdate }}.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ FIRSTS #}
+<section class="section" aria-labelledby="firsts-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow reveal">Our firsts</p>
+      <h2 class="title reveal" id="firsts-title">Every beginning, remembered</h2>
+    </div>
+    <div class="firsts">
+      {% for first in firsts %}
+        {% if first.event %}
+        <a class="first-card reveal{% if first.event.cover %} has-photo{% endif %}" href="{% url 'content:event_detail' first.event.id %}">
+          {% if first.event.cover %}<div class="first-bg"><img src="{{ first.event.cover.urls.thumb }}" alt="" loading="lazy"></div>{% endif %}
+          <p class="first-label">{{ first.label }}</p>
+          <h3>{{ first.event.title }}</h3>
+          <time datetime="{{ first.event.date }}">{{ first.event.date|longdate|default:"Date unknown" }}</time>
+        </a>
+        {% else %}
+        <div class="first-card is-empty reveal">
+          <p class="first-label">{{ first.label }}</p>
+          <h3 class="not-added">Not added yet</h3>
+          {% if is_admin %}<a class="muted" href="{% url 'dashboard:create' 'timeline' %}">Add it</a>{% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ TIMELINE #}
+<section class="section" aria-labelledby="timeline-title">
+  <div class="container narrow">
+    <div class="section-head">
+      <p class="eyebrow reveal">The timeline</p>
+      <h2 class="title reveal" id="timeline-title">Moments, in the order they happened</h2>
+    </div>
+    {% if timeline_groups %}
+      {% include "partials/timeline.html" with groups=timeline_groups %}
+      <div class="section-link"><a class="btn" href="{% url 'content:story' %}">The full story</a></div>
+    {% else %}
+      {% url 'dashboard:create' 'timeline' as admin_url %}
+      {% include "partials/empty.html" with message="No moments on the timeline yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ MEMORIES #}
+<section class="section" aria-labelledby="memories-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow reveal">Memories</p>
+      <h2 class="title reveal" id="memories-title">Some moments are ordinary, until they are not</h2>
+    </div>
+    {% if memories %}
+      <div class="masonry">{% for memory in memories %}{% include "partials/memory_card.html" %}{% endfor %}</div>
+      <div class="section-link"><a class="btn" href="{% url 'content:memories' %}">All memories</a></div>
+    {% else %}
+      {% url 'dashboard:create' 'memories' as admin_url %}
+      {% include "partials/empty.html" with message="No memories added yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ GALLERY #}
+{% if photos %}
+<section class="section" aria-labelledby="gallery-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow reveal">Gallery</p>
+      <h2 class="title reveal" id="gallery-title">Frames we kept</h2>
+    </div>
+    <div class="gallery" data-lb-group>{% for photo in photos %}{% include "partials/gallery_item.html" %}{% endfor %}</div>
+    <div class="section-link"><a class="btn" href="{% url 'content:gallery' %}">Open the gallery</a></div>
+  </div>
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------------ WORDS #}
+{% if messages_list %}
+<section class="section" aria-labelledby="words-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow reveal">Words I'll never forget</p>
+      <h2 class="title reveal" id="words-title">Some words stay long after the conversation ends</h2>
+    </div>
+    <div class="quotes">
+      {% for m in messages_list %}{% include "partials/quote_card.html" %}{% endfor %}
+    </div>
+    <div class="section-link"><a class="btn" href="{% url 'content:words' %}">All the words</a></div>
+  </div>
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------------ PLACES #}
+{% if places %}
+<section class="section" aria-labelledby="places-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow reveal">Places</p>
+      <h2 class="title reveal" id="places-title">Places that became memories</h2>
+    </div>
+    <div class="places">
+      {% for place in places %}
+      <article class="place-card reveal">
+        <div class="memory-body">
+          <p class="place-where">{{ place.city|default:"" }}{% if place.city and place.country %}, {% endif %}{{ place.country|default:"" }}</p>
+          <h3>{{ place.name }}</h3>
+          {% if place.date %}<p class="muted">{{ place.date|longdate }}</p>{% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="section-link"><a class="btn" href="{% url 'content:places' %}">Every place</a></div>
+  </div>
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------------ LETTERS #}
+{% if letters %}
+<section class="section" aria-labelledby="letters-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow reveal">Letters</p>
+      <h2 class="title reveal" id="letters-title">Written slowly, meant to be read again</h2>
+    </div>
+    <div class="letters">{% for letter in letters %}{% include "partials/envelope.html" %}{% endfor %}</div>
+    <div class="section-link"><a class="btn" href="{% url 'content:letters' %}">All letters</a></div>
+  </div>
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------------ FUTURE #}
+<section class="section" aria-labelledby="future-title">
+  <div class="container narrow">
+    <div class="section-head">
+      <p class="eyebrow reveal">Still to come</p>
+      <h2 class="title reveal" id="future-title">Things we still want to do</h2>
+    </div>
+    {% if future %}
+      {% include "partials/future_list.html" with items=future %}
+      <div class="section-link"><a class="btn" href="{% url 'content:future' %}">The whole list</a></div>
+    {% else %}
+      {% url 'dashboard:create' 'future' as admin_url %}
+      {% include "partials/empty.html" with message="Not added yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ NUMBERS #}
+<section class="section" aria-labelledby="numbers-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow reveal">Our numbers</p>
+      <h2 class="title reveal" id="numbers-title">Counted, not estimated</h2>
+    </div>
+    <div class="stats reveal">
+      {% for stat in stats %}
+      <div class="stat">
+        {% if stat.value is None %}<strong class="not-added">Not added yet</strong>{% else %}<strong data-count="{{ stat.value }}">{{ stat.value }}</strong>{% endif %}
+        <span>{{ stat.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ ON THIS DAY #}
+<section class="section" aria-labelledby="otd-title">
+  <div class="container narrow">
+    <div class="section-head section-head--center">
+      <p class="eyebrow reveal">On this day &middot; {{ today|date:"j F" }}</p>
+      <h2 class="title reveal" id="otd-title">Today in our story</h2>
+    </div>
+    {% if on_this_day %}
+      <div class="otd">
+        {% for item in on_this_day %}
+        <div class="otd-item reveal">
+          <span class="otd-ago">{{ item.ago }} &middot; {{ item.kind }}</span>
+          <h3>{{ item.title }}</h3>
+          {% if item.doc.description %}<p class="muted clamp-3">{{ item.doc.description }}</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="otd-empty reveal">No memory recorded for this day yet.</p>
+    {% endif %}
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ FINALE #}
+<section class="finale" aria-label="Closing">
+  <div class="hero-light" aria-hidden="true"></div>
+  <div class="container narrow">
+    <p class="reveal">{{ site.appearance.final_quote|default:"And this is only the beginning." }}</p>
+    <div class="finale-mark reveal">{% icon "heart" 28 %}</div>
+    <h2 class="reveal">{{ app_name }}</h2>
+  </div>
+</section>
+{% endblock %}

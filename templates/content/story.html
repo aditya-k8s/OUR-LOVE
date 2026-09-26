@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Our Story{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container narrow">
+    <p class="eyebrow reveal">The timeline</p>
+    <h1 class="display reveal">Our <em>story</em></h1>
+    <p class="lede reveal">Every moment, in the order it happened.</p>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container narrow">
+    {% include "partials/filters.html" %}
+    {% if filters %}<p class="result-count">{{ count }} moment{{ count|pluralize }} found</p>{% endif %}
+    {% if groups %}
+      {% include "partials/timeline.html" %}
+    {% else %}
+      {% url 'dashboard:create' 'timeline' as admin_url %}
+      {% if filters %}{% include "partials/empty.html" with message="Nothing matches these filters" %}{% else %}{% include "partials/empty.html" with message="No moments on the timeline yet" admin_url=admin_url %}{% endif %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

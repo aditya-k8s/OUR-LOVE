@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Memories{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container">
+    <p class="eyebrow reveal">Memories</p>
+    <h1 class="display reveal">Moments worth <em>keeping</em></h1>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container">
+    {% include "partials/filters.html" %}
+    {% if filters %}<p class="result-count">{{ page.total }} memor{{ page.total|pluralize:"y,ies" }} found</p>{% endif %}
+    {% if page.items %}
+      <div class="masonry">{% for memory in page.items %}{% include "partials/memory_card.html" %}{% endfor %}</div>
+      {% include "partials/pagination.html" %}
+    {% else %}
+      {% url 'dashboard:create' 'memories' as admin_url %}
+      {% if filters %}{% include "partials/empty.html" with message="Nothing matches these filters" %}{% else %}{% include "partials/empty.html" with message="No memories added yet" admin_url=admin_url %}{% endif %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

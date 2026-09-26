@@ -1,0 +1,4 @@
+-r requirements.txt
+mongomock>=4.2
+pytest>=8.3
+pytest-django>=4.9

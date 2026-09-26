@@ -1,0 +1,14 @@
+{% load ourlove %}<form class="filters" method="get" data-collapsible data-autosubmit>
+  <button class="btn btn--small filters-toggle" type="button" data-filters-toggle aria-expanded="false">Filter</button>
+  <div class="filter-fields">
+    <select name="year" aria-label="Year"><option value="">All years</option>{% for y in options.years %}<option value="{{ y }}"{% if filters.year == y %} selected{% endif %}>{{ y }}</option>{% endfor %}</select>
+    <select name="month" aria-label="Month"><option value="">All months</option>{% for num, name in options.months %}<option value="{{ num }}"{% if filters.month == num|stringformat:"s" %} selected{% endif %}>{{ name }}</option>{% endfor %}</select>
+    {% if options.categories %}<select name="category" aria-label="Category"><option value="">All categories</option>{% for value, label in options.categories %}<option value="{{ value }}"{% if filters.category == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>{% endif %}
+    {% if options.importance %}<select name="importance" aria-label="Importance"><option value="">Any importance</option>{% for value, label in options.importance %}<option value="{{ value }}"{% if filters.importance == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>{% endif %}
+    {% if options.people %}<select name="person" aria-label="Person"><option value="">Everyone</option>{% for p in options.people %}<option value="{{ p }}"{% if filters.person == p %} selected{% endif %}>{{ p }}</option>{% endfor %}</select>{% endif %}
+    {% if options.tags %}<select name="tag" aria-label="Tag"><option value="">All tags</option>{% for t in options.tags %}<option value="{{ t }}"{% if filters.tag == t %} selected{% endif %}>{{ t }}</option>{% endfor %}</select>{% endif %}
+    <input type="search" name="location" value="{{ filters.location|default:'' }}" placeholder="Location" aria-label="Location">
+    <button class="btn btn--small" type="submit">Apply</button>
+    {% if filters %}<a class="btn btn--small btn--ghost" href="{{ request.path }}">Clear</a>{% endif %}
+  </div>
+</form>

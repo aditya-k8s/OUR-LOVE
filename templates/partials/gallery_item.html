@@ -1,0 +1,6 @@
+{% load ourlove %}<button type="button" class="gallery-item reveal" data-lb-item
+  data-src="{{ photo.urls.medium }}" data-full="{{ photo.urls.original }}"
+  data-caption="{{ photo.caption }}" data-meta="{% if photo.date %}{{ photo.date|longdate }}{% endif %}{% if photo.date and photo.location|location_text %} &middot; {% endif %}{{ photo.location|location_text }}">
+  <img src="{{ photo.urls.thumb }}" alt="{{ photo.caption|default:'Photo' }}" loading="lazy" decoding="async"{% if photo.width %} width="{{ photo.width }}" height="{{ photo.height }}"{% endif %}>
+  {% if photo.caption %}<figcaption>{{ photo.caption }}</figcaption>{% endif %}
+</button>

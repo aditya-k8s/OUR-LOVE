@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Gallery{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container">
+    <p class="eyebrow reveal">Gallery</p>
+    <h1 class="display reveal">Frames we <em>kept</em></h1>
+    <p class="lede reveal">{{ page.total }} photo{{ page.total|pluralize }}. Tap any image to view it full screen; swipe or use the arrow keys to move through them.</p>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container">
+    {% if tags %}
+    <nav class="tag-bar" aria-label="Filter by tag">
+      <a class="chip" href="{% url 'content:gallery' %}"{% if not tag %} aria-current="true"{% endif %}>All</a>
+      {% for t in tags %}<a class="chip" href="?tag={{ t|urlencode }}"{% if t == tag %} aria-current="true"{% endif %}>{{ t }}</a>{% endfor %}
+    </nav>
+    {% endif %}
+    {% if page.items %}
+      <div class="gallery" data-lb-group>{% for photo in page.items %}{% include "partials/gallery_item.html" %}{% endfor %}</div>
+      {% include "partials/pagination.html" %}
+    {% else %}
+      {% url 'dashboard:list' 'photos' as admin_url %}
+      {% include "partials/empty.html" with message="No photos added yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

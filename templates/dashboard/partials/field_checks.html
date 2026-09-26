@@ -1,0 +1,7 @@
+{% if field %}<div class="f wide">
+  <span class="f-label">{{ field.label }}</span>
+  {% if field.field.choices %}
+  <div class="check-list">{% for choice in field %}<label>{{ choice.tag }} {{ choice.choice_label|truncatechars:50 }}</label>{% endfor %}</div>
+  {% else %}<p class="help">Nothing to link yet.</p>{% endif %}
+  {{ field.errors }}
+</div>{% endif %}

@@ -1,0 +1,12 @@
+{% load ourlove %}<div class="brand"><span class="brand-mark" aria-hidden="true">{% icon "heart" 22 %}</span><a class="brand-name" href="{% url 'content:home' %}">Our Love</a></div>
+<a class="dash-link" href="{% url 'dashboard:home' %}"{% if home_active %} aria-current="page"{% endif %}>{% icon "home" %}Overview</a>
+<a class="dash-link" href="{{ import_url }}"{% if import_active %} aria-current="page"{% endif %}>{% icon "import" %}Import history{% if pending %}<span class="count is-alert">{{ pending }}</span>{% endif %}</a>
+{% for group in groups %}
+<p class="dash-group">{{ group.title }}</p>
+{% for link in group.links %}<a class="dash-link" href="{{ link.url }}"{% if link.active %} aria-current="page"{% endif %}>{% icon link.icon %}{{ link.label }}<span class="count">{{ link.count }}</span></a>{% endfor %}
+{% endfor %}
+<div class="dash-side-foot">
+  <a class="dash-link" href="{% url 'dashboard:settings' %}"{% if settings_active %} aria-current="page"{% endif %}>{% icon "settings" %}Settings</a>
+  <a class="dash-link" href="{% url 'dashboard:export' %}"{% if export_active %} aria-current="page"{% endif %}>{% icon "export" %}Export our story</a>
+  <form method="post" action="{% url 'accounts:logout' %}" data-logout><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><button class="dash-link link-reset" type="submit">{% icon "logout" %}Sign out</button></form>
+</div>

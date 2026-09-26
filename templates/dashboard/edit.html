@@ -1,0 +1,66 @@
+{% extends "dashboard/base.html" %}
+{% load ourlove %}
+{% block title %}{% if doc %}Edit {{ ct.label|lower }}{% else %}Add {{ ct.label|lower }}{% endif %}{% endblock %}
+{% block dash %}
+<div class="dash-head">
+  <div>
+    <p class="breadcrumb"><a href="{% url 'dashboard:home' %}">Dashboard</a> / <a href="{% url 'dashboard:list' ct.key %}">{{ ct.label_plural }}</a></p>
+    <h1>{% if doc %}Edit {{ ct.label|lower }}{% else %}Add {{ ct.label|lower }}{% endif %}</h1>
+    {% if doc.source.type == "import" %}<p>Imported from chat history and approved by you.</p>{% endif %}
+  </div>
+  {% if ct.key == "photos" and doc %}
+  <div class="dash-actions"><a class="btn btn--small" href="{{ photo_preview.original }}" target="_blank" rel="noopener">View original</a></div>
+  {% endif %}
+</div>
+
+{% if ct.key == "photos" and doc %}
+<div class="panel"><img src="{{ photo_preview.medium }}" alt="" class="edit-preview"></div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate data-edit-form>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="notice"><strong>{{ form.non_field_errors|join:" " }}</strong></div>{% endif %}
+  <div class="panel">
+    <div class="form-grid">
+      {% for spec in specs %}
+        {% if spec.kind == "location" %}
+          {% include "dashboard/partials/field_location.html" %}
+        {% elif spec.kind == "photos" or spec.kind == "photo" %}
+          {% include "dashboard/partials/field_photos.html" %}
+        {% elif spec.kind == "videos" or spec.kind == "memory" and spec.name != "memory_id" %}
+          {% with field=form|field:spec.name %}{% include "dashboard/partials/field_checks.html" %}{% endwith %}
+        {% elif spec.kind == "bool" %}
+          {% with field=form|field:spec.name %}{% include "dashboard/partials/field_bool.html" %}{% endwith %}
+        {% else %}
+          {% with field=form|field:spec.name %}{% include "dashboard/partials/field.html" %}{% endwith %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if ct.publishable %}
+  <div class="panel">
+    <h2>Visibility</h2>
+    <div class="form-grid">
+      {% with field=form.is_published %}{% include "dashboard/partials/field_bool.html" %}{% endwith %}
+      {% with field=form.is_public %}{% include "dashboard/partials/field_bool.html" %}{% endwith %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="form-foot">
+    <a class="btn btn--small btn--ghost spacer" href="{% url 'dashboard:list' ct.key %}">Cancel</a>
+    {% if not doc and ct.creatable %}<button class="btn btn--small" type="submit" name="save_add" value="1">Save and add another</button>{% endif %}
+    <button class="btn btn--small btn--solid" type="submit">Save {{ ct.label|lower }}</button>
+  </div>
+</form>
+
+{% if doc %}
+<div class="panel danger-zone">
+  <h2>Delete</h2>
+  <form method="post" action="{% url 'dashboard:delete' ct.key doc.id %}" data-confirm="Delete this {{ ct.label|lower }}? This cannot be undone.">
+    {% csrf_token %}<button class="btn btn--small btn--danger" type="submit">Delete {{ ct.label|lower }}</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

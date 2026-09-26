@@ -1,0 +1,9 @@
+{% load ourlove %}<div class="panel">
+  <label class="dropzone" data-dropzone data-upload-url="{% url 'dashboard:upload' kind %}" data-kind="{{ kind }}">
+    {% icon "upload" 34 %}
+    <strong>Drag {{ kind }}s here</strong>
+    <p>or <u>choose files</u> &middot; {{ hint }}</p>
+    <input class="sr-only" type="file" accept="{{ accept }}" multiple data-dropzone-input>
+  </label>
+  <ul class="uploads" data-uploads aria-live="polite"></ul>
+</div>

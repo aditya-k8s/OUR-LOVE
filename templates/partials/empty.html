@@ -1,0 +1,4 @@
+<div class="empty-state reveal">
+  <p>{{ message|default:"Not added yet" }}</p>
+  {% if is_admin and admin_url %}<a class="btn btn--small" href="{{ admin_url }}">Add the first one</a>{% endif %}
+</div>

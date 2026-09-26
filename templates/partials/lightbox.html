@@ -1,0 +1,10 @@
+{% load ourlove %}<div class="lightbox" data-lightbox role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
+  <span class="lb-counter" data-lb-counter></span>
+  <button class="icon-btn lb-btn lb-close" type="button" data-lb-close aria-label="Close">{% icon "close" 22 %}</button>
+  <button class="icon-btn lb-btn lb-prev" type="button" data-lb-prev aria-label="Previous photo">{% icon "left" 22 %}</button>
+  <figure>
+    <img data-lb-img alt="">
+    <figcaption><span data-lb-caption></span><span class="lb-meta" data-lb-meta></span></figcaption>
+  </figure>
+  <button class="icon-btn lb-btn lb-next" type="button" data-lb-next aria-label="Next photo">{% icon "right" 22 %}</button>
+</div>

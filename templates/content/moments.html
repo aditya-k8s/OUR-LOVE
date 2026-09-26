@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Moments in Motion{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container">
+    <p class="eyebrow reveal">Videos</p>
+    <h1 class="display reveal">Moments in <em>motion</em></h1>
+    <p class="lede reveal">Videos never play on their own and start muted.</p>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container">
+    {% if page.items %}
+    <div class="video-grid">
+      {% for video in page.items %}
+      <article class="video-card reveal">
+        <video src="{{ video.src }}" controls muted playsinline preload="none"{% if video.poster_photo %} poster="{{ video.poster_photo.urls.medium }}"{% endif %}></video>
+        <div class="memory-body">
+          <p class="event-meta">{% if video.date %}<time datetime="{{ video.date }}">{{ video.date|longdate }}</time>{% endif %}{% if video.location|location_text %}<span>{{ video.location|location_text }}</span>{% endif %}</p>
+          <h3>{{ video.title }}</h3>
+          {% if video.caption %}<p>{{ video.caption }}</p>{% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% include "partials/pagination.html" %}
+    {% else %}
+      {% url 'dashboard:list' 'videos' as admin_url %}
+      {% include "partials/empty.html" with message="No videos added yet" admin_url=admin_url %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

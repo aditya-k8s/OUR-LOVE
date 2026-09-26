@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load ourlove %}
+{% block title %}Everything{% endblock %}
+{% block content %}
+<header class="page-hero">
+  <div class="container">
+    <p class="eyebrow">{{ app_name }}</p>
+    <h1 class="display">Everything</h1>
+  </div>
+</header>
+<section class="section section--tight">
+  <div class="container">
+    <div class="more-grid">
+      <a href="{% url 'content:story' %}">{% icon "story" %}<span>Our story</span></a>
+      <a href="{% url 'content:memories' %}">{% icon "memories" %}<span>Memories</span></a>
+      <a href="{% url 'content:gallery' %}">{% icon "gallery" %}<span>Gallery</span></a>
+      <a href="{% url 'content:moments' %}">{% icon "video" %}<span>Moments in motion</span></a>
+      <a href="{% url 'content:letters' %}">{% icon "letter" %}<span>Letters</span></a>
+      <a href="{% url 'content:words' %}">{% icon "quote" %}<span>Words I'll never forget</span></a>
+      <a href="{% url 'content:places' %}">{% icon "pin" %}<span>Places</span></a>
+      <a href="{% url 'content:gifts' %}">{% icon "gift" %}<span>Little things</span></a>
+      <a href="{% url 'content:calendar' %}">{% icon "calendar" %}<span>Our calendar</span></a>
+      <a href="{% url 'content:future' %}">{% icon "future" %}<span>Still to come</span></a>
+      <a href="{% url 'content:search' %}">{% icon "search" %}<span>Search</span></a>
+      {% if is_admin %}<a href="{% url 'dashboard:home' %}">{% icon "settings" %}<span>Dashboard</span></a>{% endif %}
+      <button class="more-install" type="button" data-install hidden>{% icon "install" %}<span>Install {{ app_name }}</span></button>
+    </div>
+    <p class="muted" data-ios-hint hidden>On iPhone or iPad: tap Share, then &ldquo;Add to Home Screen&rdquo;.</p>
+  </div>
+</section>
+{% endblock %}

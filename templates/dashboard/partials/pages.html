@@ -1,0 +1,7 @@
+{% load ourlove %}{% if pages > 1 %}
+<nav class="pagination" aria-label="Pages">
+  {% if page > 1 %}<a class="btn btn--small" href="{% query_with page=page|add:'-1' %}">Previous</a>{% endif %}
+  <span>Page {{ page }} of {{ pages }}</span>
+  {% if page < pages %}<a class="btn btn--small" href="{% query_with page=page|add:'1' %}">Next</a>{% endif %}
+</nav>
+{% endif %}

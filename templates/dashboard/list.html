@@ -1,0 +1,84 @@
+{% extends "dashboard/base.html" %}
+{% load ourlove %}
+{% block title %}{{ ct.label_plural }}{% endblock %}
+{% block dash %}
+<div class="dash-head">
+  <div>
+    <p class="breadcrumb"><a href="{% url 'dashboard:home' %}">Dashboard</a> / {{ ct.label_plural }}</p>
+    <h1>{{ ct.label_plural }}</h1>
+    {% if ct.intro %}<p>{{ ct.intro }}</p>{% endif %}
+  </div>
+  <div class="dash-actions">
+    {% if ct.public_url %}<a class="btn btn--small" href="{% url ct.public_url %}">View on site</a>{% endif %}
+    {% if ct.creatable %}<a class="btn btn--solid btn--small" href="{% url 'dashboard:create' ct.key %}">{% icon "plus" 16 %} Add {{ ct.label|lower }}</a>{% endif %}
+  </div>
+</div>
+
+{% if ct.key == "videos" %}
+  {% include "dashboard/partials/dropzone.html" with kind="video" accept="video/mp4,video/webm" hint="MP4 or WebM" %}
+{% endif %}
+
+<form class="toolbar" method="get" role="search">
+  <input class="search-input" type="search" name="q" value="{{ q }}" placeholder="Search {{ ct.label_plural|lower }}" aria-label="Search">
+  <span class="muted">{{ total }} item{{ total|pluralize }}</span>
+</form>
+
+{% if items %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        {% for col in columns %}<th scope="col"{% if not forloop.first %} class="hide-sm"{% endif %}>{{ col.label }}</th>{% endfor %}
+        {% if ct.publishable %}<th scope="col" class="hide-sm">Status</th>{% endif %}
+        <th scope="col"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        {% for col in columns %}
+        {% with value=item|get_item:col.name %}
+        <td{% if forloop.first %} class="title-cell"{% else %} class="hide-sm"{% endif %}>
+          {% if forloop.first %}<a href="{% url 'dashboard:edit' ct.key item.id %}">{{ value|default:"Untitled"|truncatechars:70 }}</a>{% if item.is_demo %} <span class="chip">Demo</span>{% endif %}
+          {% elif col.kind == "date" %}{{ value|shortdate|default:"—" }}
+          {% elif col.kind == "select" %}{% with spec=ct.key|add:"."|add:col.name %}{{ value|label_for:spec }}{% endwith %}
+          {% elif col.kind == "bool" %}{% if value %}Yes{% else %}&mdash;{% endif %}
+          {% else %}{{ value|default:"—"|truncatechars:40 }}{% endif %}
+        </td>
+        {% endwith %}
+        {% endfor %}
+        {% if ct.publishable %}
+        <td class="hide-sm">
+          {% if item.is_published is False %}<span class="state">Draft</span>{% else %}<span class="state is-on">Published</span>{% endif %}
+          {% if item.is_public %}<span class="state is-public">Public</span>{% endif %}
+        </td>
+        {% endif %}
+        <td>
+          <div class="row-actions">
+            {% if can_reorder %}
+            <form method="post" action="{% url 'dashboard:reorder' ct.key item.id 'up' %}">{% csrf_token %}<button class="icon-btn" type="submit" aria-label="Move up" title="Move up">{% icon "up" %}</button></form>
+            <form method="post" action="{% url 'dashboard:reorder' ct.key item.id 'down' %}">{% csrf_token %}<button class="icon-btn" type="submit" aria-label="Move down" title="Move down">{% icon "down" %}</button></form>
+            {% endif %}
+            {% if ct.key == "future" %}
+            <form method="post" action="{% url 'dashboard:toggle' ct.key item.id 'completed' %}">{% csrf_token %}<button class="icon-btn" type="submit" aria-pressed="{% if item.completed %}true{% else %}false{% endif %}" aria-label="Mark completed" title="{% if item.completed %}Mark not done{% else %}Mark done{% endif %}">{% icon "check" %}</button></form>
+            {% endif %}
+            {% if ct.publishable %}
+            <form method="post" action="{% url 'dashboard:toggle' ct.key item.id 'is_published' %}">{% csrf_token %}<button class="icon-btn" type="submit" aria-label="{% if item.is_published is False %}Publish{% else %}Unpublish{% endif %}" title="{% if item.is_published is False %}Publish{% else %}Unpublish{% endif %}">{% if item.is_published is False %}{% icon "eye-off" %}{% else %}{% icon "eye" %}{% endif %}</button></form>
+            {% endif %}
+            <a class="icon-btn" href="{% url 'dashboard:edit' ct.key item.id %}" aria-label="Edit" title="Edit">{% icon "edit" %}</a>
+            <form method="post" action="{% url 'dashboard:delete' ct.key item.id %}" data-confirm="Delete this {{ ct.label|lower }}? This cannot be undone.">{% csrf_token %}<button class="icon-btn" type="submit" aria-label="Delete" title="Delete">{% icon "trash" %}</button></form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "dashboard/partials/pages.html" %}
+{% else %}
+<div class="empty-state">
+  <p>{% if q %}Nothing matches &ldquo;{{ q }}&rdquo;{% else %}Not added yet{% endif %}</p>
+  {% if ct.creatable and not q %}<a class="btn btn--small" href="{% url 'dashboard:create' ct.key %}">Add the first {{ ct.label|lower }}</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

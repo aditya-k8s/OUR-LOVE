@@ -1,0 +1,29 @@
+{% extends "dashboard/base.html" %}
+{% load ourlove %}
+{% block title %}Export our story{% endblock %}
+{% block dash %}
+<div class="dash-head">
+  <div>
+    <p class="breadcrumb"><a href="{% url 'dashboard:home' %}">Dashboard</a> / Export</p>
+    <h1>Export our story</h1>
+    <p>Download everything as structured JSON, or as a ZIP that also contains your photos and videos. Keep exports somewhere private: they contain your whole story.</p>
+  </div>
+</div>
+<div class="panel-grid">
+  <section class="panel">
+    <h2>Download</h2>
+    <div class="dash-actions">
+      <a class="btn btn--small btn--solid" href="?format=json">{% icon "export" 16 %} JSON</a>
+      <a class="btn btn--small" href="?format=zip">{% icon "export" 16 %} ZIP with media</a>
+      <a class="btn btn--small" href="?format=zip&amp;media=0">ZIP without media</a>
+    </div>
+    <p class="help muted">Restore with <code>python manage.py restore_story &lt;file&gt;</code>. See the Backup section of the README.</p>
+  </section>
+  <section class="panel">
+    <h2>What is included</h2>
+    <ul class="recent">
+      {% for label, count in counts.items %}<li><a><span class="kind">{{ count }}</span><span>{{ label }}</span></a></li>{% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}
